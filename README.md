@@ -89,7 +89,7 @@ The Aurora Database in this context represents the on premises database
 5. EMR Security Groups
 6. EMR Roles
 
-![alt text](Blog-etl-stepfunction-orchestra/8dd9d132b0f91dd375a1690c75e9f05edf55a08a/stepfunction.png)
+![alt text](https://github.com/awslabs/amazon-s3-step-functions-ingestion-orchestration/blob/master/stepfunction.png)
 
 #### Steps
 
@@ -114,7 +114,7 @@ own parameter values.
 
 aws cloudformation create-stack --stack-name gwfstepfunction --template-body file://aws-etl-stepfunction.json  --region us-west-2 --capabilities CAPABILITY_IAM  --parameters file://stepfunction-parameters.json
 
-![alt text](Blog-etl-stepfunction-orchestra/8dd9d132b0f91dd375a1690c75e9f05edf55a08a/S3BucketDatalakeExampleLayout.png)
+![alt text](https://github.com/awslabs/amazon-s3-step-functions-ingestion-orchestration/blob/master/S3BucketDatalakeExampleLayout.png)
 
 ####At the end of this part we would have created the following:
 1. An EMR Cluster
