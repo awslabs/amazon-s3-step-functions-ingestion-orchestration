@@ -49,29 +49,32 @@ This intent of this project is to provide an example pattern for designing an in
 7. From the cloned repository navigate to the glue folder and upload the aws-etl-start-job-custom-resource.py.zip to the glue folder in S3 bucket location. Note this location as you will need in the cloudformation stack below in (8).
 8. Create Glue Crawler and Job load  stack using the aws-etl-load-rds.yml cloudformation template.  This cloudformation stack will create Glue crawlers that will crawl the s3 bucket locations and load data from the s3 bucket locations into the Aurora database already created.
 9. Parameter Values for above
-Parameter Name	Parameter Value
-CFNConnectionName	cfn-connection-spark-1
-CFNDatabaseName	cfn-database-s3
-CFNDepositsCrawlerName	cfn-crawler-spark-dep
-CFNInvestmentsCrawlerName	cfn-crawler-spark-inv
-CFNJDBCPassword	<Change Me>
-CFNJDBCString	<Change Me>
-CFNJDBCUser	<Change Me>
-CFNJobName	cfn-glue-job-s3-to-JDBC
-CFNLoansCrawlerName	cfn-crawler-spark-loa
-CFNS3PATHDEPOSIT	s3://<ChangeMe>/Deposits
-CFNS3PATHINV	s3://<ChangeMe>/Investments
-CFNS3PATHLOAN	s3://<ChangeMe>/Loans
-CFNS3PATHSHIP	s3://<ChangeMe>/Shipments
-CFNScriptLocation	s3://<ChangeMe>/aws-glue-etl-job.py
-CFNShipmentsCrawlerName	cfn-crawler-spark-shi
-CFNTablePrefixName	cfn_s3_sprk_1_
-GlueCrawlerCustomKey	glue/aws-etl-start-crawler-custom-resource.py.zip
-GlueCrawlerCustomModule	aws-etl-start-crawler-custom-resource
-GlueJobCustomKey	glue/aws-etl-start-job-custom-resource.py.zip
-GlueJobCustomModule	aws-etl-start-job-custom-resource
-S3Bucket	<ChangeMe>
-SubnetId	<ChangeMe>
+
+| Parameter Name |	Parameter Value |
+|----------------|------------------|
+|CFNConnectionName	| cfn-connection-spark-1 |
+|CFNDatabaseName	| cfn-database-s3 |
+|CFNDepositsCrawlerName	| cfn-crawler-spark-dep |
+|CFNInvestmentsCrawlerName	| cfn-crawler-spark-inv |
+|CFNJDBCPassword	| <Change Me> |
+|CFNJDBCString	| <Change Me> |
+|CFNJDBCUser	| <Change Me> |
+|CFNJobName	| cfn-glue-job-s3-to-JDBC |
+|CFNLoansCrawlerName	| cfn-crawler-spark-loa |
+|CFNS3PATHDEPOSIT	| s3://<ChangeMe>/Deposits |
+|CFNS3PATHINV	| s3://<ChangeMe>/Investments |
+|CFNS3PATHLOAN	| s3://<ChangeMe>/Loans |
+|CFNS3PATHSHIP	| s3://<ChangeMe>/Shipments |
+|CFNScriptLocation	| s3://<ChangeMe>/aws-glue-etl-job.py |
+|CFNShipmentsCrawlerName	| cfn-crawler-spark-shi |
+|CFNTablePrefixName	| cfn_s3_sprk_1_ |
+|GlueCrawlerCustomKey	| glue/aws-etl-start-crawler-custom-resource.py.zip |
+|GlueCrawlerCustomModule	| aws-etl-start-crawler-custom-resource |
+|GlueJobCustomKey	| glue/aws-etl-start-job-custom-resource.py.zip |
+|GlueJobCustomModule	| aws-etl-start-job-custom-resource |
+|S3Bucket	| <ChangeMe> |
+|SubnetId |	<ChangeMe> |
+
 #####At the end of this part we would have created
 1. An AWS Aurora database
 2. Created Glue Crawlers and Glue Job to populate AWS Aurora Database with Sample data
