@@ -1,0 +1,296 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: >
+  A CloudFormation template that creates an RDS aurora postgresql database
+Parameters:
+  DatabaseUsername:
+    AllowedPattern: "[a-zA-Z0-9]+"
+    ConstraintDescription: must be between 1 to 16 alphanumeric characters.
+    Description: The database admin account user name, between 1 to 16 alphanumeric characters.
+    MaxLength: '16'
+    MinLength: '1'
+    Type: String
+  DatabasePassword:
+    AllowedPattern: "[a-zA-Z0-9]+"
+    ConstraintDescription: must be between 8 to 41 alphanumeric characters.
+    Description: The database admin account password, between 8 to 41 alphanumeric characters.
+    MaxLength: '41'
+    MinLength: '8'
+    NoEcho: 'true'
+    Type: String
+  DBPort:
+    Description: TCP/IP Port for the Database Instance
+    Type: Number
+    Default: 5432
+    ConstraintDescription: 'Must be in the range [1115-65535]'
+    MinValue: 1115
+    MaxValue: 65535
+  VPCCIDR:
+    Description: CIDR Block of VPC
+    Type: String
+    Default: 10.1.0.0/16
+  VPCID:
+    Description: CIDR Block of VPC
+    Type: String
+    Default: vpc-40393d26
+  BastionIP:
+    Description: IP Address of Bastion Host
+    Type: String
+    Default: 205.251.233.176/32
+  SubnetIdPublic:
+    Description: Public Subnet Id of the VPC
+    Type: String
+    Default: subnet-adfab6cb
+  SubnetIdPrivate:
+    Description: Private Subnet Id of the VPC
+    Type: String
+    Default: subnet-0aaf3050
+  DBInstanceClass:
+    Default: db.r4.large
+    Description: Database Instance Class
+    Type: String
+    AllowedValues:
+    - db.r4.large
+    - db.r4.xlarge
+    - db.r4.2xlarge
+    - db.r4.4xlarge
+    - db.r4.8xlarge
+    - db.r4.16xlarge
+  DBName:
+    Description: Database Name
+    Type: String
+    MinLength: '1'
+    MaxLength: '64'
+    AllowedPattern: "^[a-zA-Z]+[0-9a-zA-Z_]*$"
+    ConstraintDescription: Must start with a letter. Only numbers, letters, and _ accepted. max length 64 characters
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Database Configuration
+        Parameters:
+          - DatabaseUsername
+          - DatabasePassword
+    ParameterLabels:
+      DatabaseUsername:
+        default: Database Username
+      DatabasePassword:
+        default: Database Password
+
+Resources:
+  StackAlarmTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Stack Alarm Topic
+  DatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: CloudFormation managed DB subnet group.
+      SubnetIds:
+        - !Ref SubnetIdPrivate
+        - !Ref SubnetIdPublic
+      #SubnetIds: !FindInMap [!Ref "AWS::AccountId", !Ref "AWS::Region", "Subnets"]
+  DatabaseCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-postgresql
+      MasterUsername: !Ref "DatabaseUsername"
+      MasterUserPassword: !Ref "DatabasePassword"
+      Port: !Ref DBPort
+      DatabaseName: !Ref DBName
+      DBClusterParameterGroupName: !Ref RDSDBClusterParameterGroup
+      BackupRetentionPeriod: 7
+      PreferredBackupWindow: 01:00-02:00
+      PreferredMaintenanceWindow: mon:03:00-mon:04:00
+      DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
+      #VpcSecurityGroupIds: !FindInMap [!Ref "AWS::AccountId", !Ref "AWS::Region", "SecurityGroups"]
+      VpcSecurityGroupIds:
+      - !Ref ClusterSecurityGroup
+  ClusterSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: !Ref 'AWS::StackName'
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: !Ref DBPort
+        ToPort: !Ref DBPort
+        CidrIp: !Ref VPCCIDR
+        Description: 'Access to VPC CIDR Block'
+      - IpProtocol: tcp
+        FromPort: !Ref DBPort
+        ToPort: !Ref DBPort
+        CidrIp: !Ref BastionIP
+        Description: Access to Bastion
+      VpcId: !Ref VPCID
+      Tags:
+      - Key: Name
+        Value: !Sub '${AWS::StackName}-AuroraClusterSecurityGroup'
+  ClusterSecurityGroupIngress:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !GetAtt 'ClusterSecurityGroup.GroupId'
+      IpProtocol: -1
+      SourceSecurityGroupId: !Ref ClusterSecurityGroup
+      Description: 'Self Reference'
+  RDSDBClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: !Join [ "- ", [ "Aurora PG Cluster Parameter Group for  Cloudformation Stack ", !Ref DBName ] ]
+      Family: aurora-postgresql9.6
+      Parameters:
+        rds.force_ssl: 1
+  DBParamGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: !Join [ "- ", [ "Aurora PG Database Instance Parameter Group for Cloudformation Stack ", !Ref DBName ] ]
+      Family: aurora-postgresql9.6
+      Parameters:
+        shared_preload_libraries: auto_explain,pg_stat_statements,pg_hint_plan,pgaudit
+        log_statement: "ddl"
+        log_connections: 1
+        log_disconnections: 1
+        log_lock_waits: 1
+        log_min_duration_statement: 5000
+        auto_explain.log_min_duration: 5000
+        auto_explain.log_verbose: 1
+        log_rotation_age: 1440
+        log_rotation_size: 102400
+        rds.log_retention_period: 10080
+        random_page_cost: 1
+        track_activity_query_size: 16384
+        idle_in_transaction_session_timeout: 7200000
+        statement_timeout: 7200000
+        search_path: '"$user",public'
+  DatabasePrimaryInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: aurora-postgresql
+      DBClusterIdentifier: !Ref "DatabaseCluster"
+      DBInstanceClass: !Ref DBInstanceClass
+      DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
+      DBParameterGroupName:
+        Ref: DBParamGroup
+  DatabasePrimaryCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Primary database CPU utilization is over 80%.
+      Namespace: AWS/RDS
+      MetricName: CPUUtilization
+      Unit: Percent
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 80
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: DBInstanceIdentifier
+          Value: !Ref "DatabasePrimaryInstance"
+      AlarmActions:
+        - Ref: StackAlarmTopic
+      InsufficientDataActions:
+        - Ref: StackAlarmTopic
+  DatabasePrimaryMemoryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Primary database freeable memory is under 700MB.
+      Namespace: AWS/RDS
+      MetricName: FreeableMemory
+      Unit: Bytes
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 700000000
+      ComparisonOperator: LessThanOrEqualToThreshold
+      Dimensions:
+        - Name: DBInstanceIdentifier
+          Value: !Ref "DatabasePrimaryInstance"
+      AlarmActions:
+        - Ref: StackAlarmTopic
+      InsufficientDataActions:
+        - Ref: StackAlarmTopic
+  DatabasePrimaryReplicationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Database replication latency is over 200ms.
+      Namespace: AWS/RDS
+      MetricName: AuroraReplicaLag
+      Unit: Milliseconds
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 200
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: DBInstanceIdentifier
+          Value: !Ref "DatabaseReplicaInstance"
+      AlarmActions:
+        - Ref: StackAlarmTopic
+  DatabaseReplicaInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: aurora-postgresql
+      DBClusterIdentifier: !Ref "DatabaseCluster"
+      DBInstanceClass: !Ref DBInstanceClass
+      DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
+  DatabaseReplicaCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Replica database CPU utilization is over 80%.
+      Namespace: AWS/RDS
+      MetricName: CPUUtilization
+      Unit: Percent
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 80
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: DBInstanceIdentifier
+          Value: !Ref "DatabaseReplicaInstance"
+      AlarmActions:
+        - Ref: StackAlarmTopic
+      InsufficientDataActions:
+        - Ref: StackAlarmTopic
+  DatabaseReplicaMemoryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Replica database freeable memory is under 700MB.
+      Namespace: AWS/RDS
+      MetricName: FreeableMemory
+      Unit: Bytes
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 700000000
+      ComparisonOperator: LessThanOrEqualToThreshold
+      Dimensions:
+        - Name: DBInstanceIdentifier
+          Value: !Ref "DatabaseReplicaInstance"
+      AlarmActions:
+        - Ref: StackAlarmTopic
+      InsufficientDataActions:
+        - Ref: StackAlarmTopic
+  DatabaseReplicaReplicationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Database replication latency is over 200ms.
+      Namespace: AWS/RDS
+      MetricName: AuroraReplicaLag
+      Unit: Milliseconds
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 200
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: DBInstanceIdentifier
+          Value: !Ref "DatabaseReplicaInstance"
+      AlarmActions:
+        - Ref: StackAlarmTopic
+Outputs:
+  AuroraClusterSecurityGroup:
+    Description: Aurora Database Security Group
+    Value: !GetAtt ClusterSecurityGroup.GroupId
+    Export:
+      Name: AuroraClusterSecurityGroup

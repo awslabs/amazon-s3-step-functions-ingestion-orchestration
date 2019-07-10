@@ -1,0 +1,625 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  A template that creates a State Machine that ochestrates an ETL process
+  involving the running of spark jobs on emr
+Parameters:
+  CreateEMRModuleName:
+    Description: The name of the Python file
+    Type: String
+    Default: blog_etl_emr_cluster_create
+  S3Bucket:
+    Description: The name of the bucket that contains your packaged source
+    Type: String
+    Default: temitayo-blog
+  CreateEMRS3Key:
+    Description: The name of the ZIP package
+    Type: String
+    Default: lambdas/blog_etl_emr_cluster_create.zip
+  emrname:
+    Description: The name of the emr
+    Type: String
+    Default: BLOG_EMR_ETL_INCREMENTAL_CLUSTER
+  releaselabel:
+    Description: The emr release label
+    Type: String
+    Default: emr-5.17.0
+  loguri:
+    Description: The name of the log uri location
+    Type: String
+    Default: 's3n://aws-logs-573906581002-us-west-2/elasticmapreduce'
+  ec2keyname:
+    Description: The name of the key pair
+    Type: String
+    Default: ty-private-emr-kp
+  ec2subnetid:
+    Description: The id of the subnet where the emr is deployed
+    Type: String
+    Default: subnet-0aaf3050
+  mastersg:
+    Description: The name of the emr master  security group
+    Type: String
+    Default: sg-a6cddadb
+  slavesg:
+    Description: The name of the emr slave  security group
+    Type: String
+    Default: sg-05cdda78
+  serviceaccesssg:
+    Description: The name of the service access security group
+    Type: String
+    Default: sg-22cbdc5f
+  emrsteplocation:
+    Description: The location of the emr step  script
+    Type: String
+    Default: 's3://temitayo-blog/ba/bootstrap-emr-step.sh'
+  emrbalocation:
+    Description: The location of the bootstrap action script
+    Type: String
+    Default: 's3://temitayo-blog/ba/bootstrap-emr.sh'
+  jobflowrole:
+    Description: The name of the EMR Job FLow Role
+    Type: String
+    Default: EMR_EC2_DefaultRole
+  servicerole:
+    Description: The name of the EMR Service Role
+    Type: String
+    Default: EMR_DefaultRole
+  ClusterStatusModuleName:
+    Description: The name of the Python file
+    Type: String
+    Default: blog_etl_emr_cluster_status
+  ClusterStatusS3Key:
+    Description: The name of the ZIP package
+    Type: String
+    Default: lambdas/blog_etl_emr_cluster_status.zip
+  regionname:
+    Description: region where function will be deployed
+    Type: String
+    Default: us-west-2
+  configtable:
+    Description: The DDB config table
+    Type: String
+    Default: blog-etl-conf
+  snstopic:
+    Description: The SNS topic to notify
+    Type: String
+    Default: 'arn:aws:sns:us-west-2:573906581002:blog-etl-state-machine'
+  EMRStepSubmitModuleName:
+    Description: The name of the Python file
+    Type: String
+    Default: blog_etl_add_emr_step
+  EMRStepSubmitS3Key:
+    Description: The name of the ZIP package
+    Type: String
+    Default: lambdas/blog_etl_add_emr_step.zip
+  EMRStepStatusModuleName:
+    Description: The name of the Python file
+    Type: String
+    Default: blog_etl_emr_step_status
+  EMRStepStatusS3Key:
+    Description: The name of the ZIP package
+    Type: String
+    Default: lambdas/blog_etl_emr_step_status.zip
+  historytable:
+    Description: The DDB history table
+    Type: String
+    Default: blog-etl-history
+  GetNextEMRJobModule:
+    Description: The name of the Python file
+    Type: String
+    Default: blog_etl_iterator
+  GetNextEMRJobS3Key:
+    Description: The name of the ZIP package
+    Type: String
+    Default: lambdas/blog_etl_iterator.zip
+  AllJobsCompletedModule:
+    Description: The name of the Python file
+    Type: String
+    Default: blog_etl_all_steps_completed
+  AllJobsCompletedS3Key:
+    Description: The name of the ZIP package
+    Type: String
+    Default: lambdas/blog_etl_all_steps_completed.zip
+  DDBConfigModule:
+    Description: The name of the Python file
+    Type: String
+    Default: blog_etl_conf_jobs_custom_resource
+  DDBConfigS3Key:
+    Description: The name of the ZIP package
+    Type: String
+    Default: lambdas/blog_etl_conf_jobs_custom_resource.zip
+  CustomResourceS3Key:
+    Description: The name of the dynamodb config table columnn to be created
+    Type: String
+    Default: cfn/config.txt
+  emrcommandrunnerscript:
+    Description: The emr command runner regional script
+    Type: String
+    Default: 's3://us-west-2.elasticmapreduce/libs/script-runner/script-runner.jar'
+  ETLStateMachineDateRotationS3Key:
+    Description: The name of the ZIP package
+    Type: String
+    Default: lambdas/blog_etl_date_rotation.zip
+  ETLStateMachineDateRotationModuleName:
+    Description: The name of the Python file
+    Type: String
+    Default: blog_etl_date_rotation
+  Environment:
+    Type: String
+    Description: environment
+    Default: NonProd
+  SubEnvironment:
+    Type: String
+    Description: Name subenvironment
+    Default: dev
+  AccountName:
+    Type: String
+    Description: Name of the application
+    Default: blog-state-machine
+Resources:
+  BlogEtlConfDynamoDBTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: 'Retain'
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: job_name
+          AttributeType: S
+      KeySchema:
+        - AttributeName: job_name
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '5'
+      TableName: !Ref configtable
+      Tags:
+        - Key: Name
+          Value: !Sub ${AccountName}-${Environment}-${SubEnvironment}-configtable
+        - Key: env
+          Value: !Ref SubEnvironment
+        - Key: DynamoDBTableName
+          Value: !Ref configtable
+  InsertDDBETLConfig:
+    Type: 'Custom::InsertDDBETLConfig'
+    Properties:
+      ServiceToken: !GetAtt
+        - InsertDDBETLConfigFunction
+        - Arn
+      Region: !Ref 'AWS::Region'
+      Tags:
+        - Key: Name
+          Value: !Sub ${AccountName}-${Environment}-${SubEnvironment}-InsertDDBETLConfigCustomResource
+        - Key: env
+          Value: !Ref SubEnvironment
+    DependsOn: BlogEtlConfDynamoDBTable
+  InsertDDBETLConfigFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref DDBConfigS3Key
+      Handler: !Join
+        - ''
+        - - !Ref DDBConfigModule
+          - .handler
+      Role:
+       Fn::ImportValue:
+          Fn::Join:
+          - ''
+          - - StepFunction-Lambda-Execution-Role
+      Runtime: python3.7
+      Timeout: '45'
+      Tags:
+        - Key: Name
+          Value: !Sub ${AccountName}-${Environment}-${SubEnvironment}-InsertDDBETLConfigLambdaFunction
+        - Key: env
+          Value: !Ref SubEnvironment
+      Environment:
+        Variables:
+          region_name: !Ref regionname
+          s3_bucket: !Ref S3Bucket
+          s3_object_key: !Ref CustomResourceS3Key
+          table_name: !Ref configtable
+  BlogEtlHistoryDynamoDBTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: 'Retain'
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: uuid
+          AttributeType: S
+        - AttributeName: cluster_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: uuid
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '5'
+      TableName: !Ref historytable
+      Tags:
+        - Key: Name
+          Value: !Sub ${AccountName}-${Environment}-${SubEnvironment}-historytable
+        - Key: env
+          Value: !Ref SubEnvironment
+        - Key: DynamoDBTableName
+          Value: !Ref historytable
+      GlobalSecondaryIndexes:
+        - IndexName: cluster_id-index
+          KeySchema:
+            - AttributeName: cluster_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: '5'
+            WriteCapacityUnits: '5'
+  ETLStateMachineDateRotation:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: S3Bucket
+        S3Key:
+          Ref: ETLStateMachineDateRotationS3Key
+      Handler:
+        Fn::Join:
+        - ''
+        - - Ref: ETLStateMachineDateRotationModuleName
+          - ".lambda_handler"
+      Role:
+        Fn::ImportValue:
+          Fn::Join:
+          - ''
+          - - StepFunction-Lambda-Execution-Role
+      Runtime: python3.7
+      Timeout: '45'
+      Tags:
+        - Key: Name
+          Value: !Sub ${AccountName}-${Environment}-${SubEnvironment}-ETLStateMachineDateRotationModule
+        - Key: env
+          Value: !Ref SubEnvironment
+      Environment:
+        Variables:
+          region: !Ref regionname
+          table_name: !Ref configtable
+          sns_topic: !Ref snstopic
+  CreateBlogEMR:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref CreateEMRS3Key
+      Handler: !Join
+        - ''
+        - - !Ref CreateEMRModuleName
+          - .lambda_handler
+      Role:
+        Fn::ImportValue:
+          Fn::Join:
+          - ''
+          - - StepFunction-Lambda-Execution-Role
+      Runtime: python3.7
+      Timeout: '45'
+      Tags:
+        - Key: Name
+          Value: !Sub ${AccountName}-${Environment}-${SubEnvironment}-CreateEMRModule
+        - Key: env
+          Value: !Ref SubEnvironment
+      Environment:
+        Variables:
+          emr_name: !Ref emrname
+          release_label: !Ref releaselabel
+          log_uri: !Ref loguri
+          ec2_keyname: !Ref ec2keyname
+          ec2_subnetid: !Ref ec2subnetid
+          master_sg: !Ref mastersg
+          slave_sg: !Ref slavesg
+          serviceaccess_sg: !Ref serviceaccesssg
+          emr_step_location: !Ref emrsteplocation
+          emr_ba_location: !Ref emrbalocation
+          job_flowrole: !Ref jobflowrole
+          service_role: !Ref servicerole
+          commandrunner_region: !Ref emrcommandrunnerscript
+  EMRClusterStatus:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref ClusterStatusS3Key
+      Handler: !Join
+        - ''
+        - - !Ref ClusterStatusModuleName
+          - .lambda_handler
+      Role:
+        Fn::ImportValue:
+          Fn::Join:
+          - ''
+          - - StepFunction-Lambda-Execution-Role
+      Runtime: python3.7
+      Timeout: '45'
+      Tags:
+        - Key: Name
+          Value: !Sub ${AccountName}-${Environment}-${SubEnvironment}-ClusterStatusModule
+        - Key: env
+          Value: !Ref SubEnvironment
+      Environment:
+        Variables:
+          region: !Ref regionname
+          table_name: !Ref configtable
+          sns_topic: !Ref snstopic
+  EMRAddEMRStep:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref EMRStepSubmitS3Key
+      Handler: !Join
+        - ''
+        - - !Ref EMRStepSubmitModuleName
+          - .lambda_handler
+      Role:
+        Fn::ImportValue:
+          Fn::Join:
+          - ''
+          - - StepFunction-Lambda-Execution-Role
+      Runtime: python3.7
+      Timeout: '45'
+      Tags:
+        - Key: Name
+          Value: !Sub ${AccountName}-${Environment}-${SubEnvironment}-EMRStepSubmitModule
+        - Key: env
+          Value: !Ref SubEnvironment
+      Environment:
+        Variables:
+          region: !Ref regionname
+          table_name: !Ref configtable
+  EMRStepStatus:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref EMRStepStatusS3Key
+      Handler: !Join
+        - ''
+        - - !Ref EMRStepStatusModuleName
+          - .lambda_handler
+      Role:
+        Fn::ImportValue:
+          Fn::Join:
+          - ''
+          - - StepFunction-Lambda-Execution-Role
+      Runtime: python3.7
+      Timeout: '45'
+      Tags:
+        - Key: Name
+          Value: !Sub ${AccountName}-${Environment}-${SubEnvironment}-EMRStepStatusModule
+        - Key: env
+          Value: !Ref SubEnvironment
+      Environment:
+        Variables:
+          region: !Ref regionname
+          history_table: !Ref historytable
+          config_table: !Ref configtable
+          sns_topic: !Ref snstopic
+  GetNextEMRJob:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref GetNextEMRJobS3Key
+      Handler: !Join
+        - ''
+        - - !Ref GetNextEMRJobModule
+          - .handler
+      Role:
+        Fn::ImportValue:
+          Fn::Join:
+          - ''
+          - - StepFunction-Lambda-Execution-Role
+      Runtime: nodejs8.10
+      Timeout: '45'
+      Tags:
+        - Key: Name
+          Value: !Sub ${AccountName}-${Environment}-${SubEnvironment}-GetNextEMRJobModule
+        - Key: env
+          Value: !Ref SubEnvironment
+  AllJobsCompleted:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref AllJobsCompletedS3Key
+      Handler: !Join
+        - ''
+        - - !Ref AllJobsCompletedModule
+          - .lambda_handler
+      Role:
+        Fn::ImportValue:
+          Fn::Join:
+          - ''
+          - - StepFunction-Lambda-Execution-Role
+      Runtime: python3.7
+      Timeout: '45'
+      Tags:
+        - Key: Name
+          Value: !Sub ${AccountName}-${Environment}-${SubEnvironment}-AllJobsCompletedModule
+        - Key: env
+          Value: !Ref SubEnvironment
+      Environment:
+        Variables:
+          region: !Ref regionname
+          table: !Ref historytable
+          sns_topic: !Ref snstopic
+  ETLStateMachine:
+    Type: "AWS::StepFunctions::StateMachine"
+    Properties:
+      DefinitionString:
+        !Sub
+          - |-
+            {
+              "Comment": "A state machine that creates an EMR Cluster, checks its status, submits a step to the cluster, monitors the Step until it completes.",
+              "StartAt": "RotateDateWindow",
+              "States": {
+                "RotateDateWindow": {
+                  "Type": "Task",
+                  "Resource": "${etlstatemachinedaterotationlambdaArn}",
+                  "ResultPath": "$.taskresult",
+                  "Next": "IsDateRotationComplete"
+                  },
+                "IsDateRotationComplete":
+                  {
+                  "Type": "Choice",
+                  "Choices": [
+                  {
+                  "Variable": "$.taskresult",
+                  "StringEquals": "DUPLICATED RUN",
+                  "Next": "ClusterFail"
+                  },
+                  {
+                  "Variable": "$.taskresult",
+                  "StringEquals": "FAIL",
+                  "Next": "ClusterFail"
+                  },
+                  {
+                  "Variable": "$.taskresult",
+                  "StringEquals": "DONE",
+                  "Next": "CreateEMRCluster"
+                }
+                ],
+                "Default": "CreateEMRCluster"
+                },
+                "CreateEMRCluster": {
+                  "Type": "Task",
+                  "Resource": "${createemrlambdaArn}",
+                  "ResultPath": "$.cluster_id",
+                  "Next": "WaitTimeCluster"
+                },
+                "WaitTimeCluster": {
+                  "Type": "Wait",
+                  "SecondsPath": "$.wait_time",
+                  "Next": "GetClusterStatus"
+                },
+                "GetClusterStatus": {
+                  "Type": "Task",
+                  "Resource": "${getclusterstatuslambdaArn}",
+                  "Next": "IsClusterStartupComplete?",
+                  "InputPath":"$",
+                  "ResultPath": "$.taskresult"
+                },
+                "IsClusterStartupComplete?": {
+                  "Type": "Choice",
+                  "Choices": [
+                    {
+                      "Variable": "$.taskresult",
+                      "StringEquals": "FAILED",
+                      "Next": "ClusterFail"
+                    },
+                    {
+                      "Variable": "$.taskresult",
+                      "StringEquals": "OK",
+                      "Next": "EMRStepSubmit"
+                    }
+                  ],
+                  "Default": "WaitTimeCluster"
+                },
+                "ClusterFail": {
+                  "Type": "Fail",
+                  "Cause": "AWS Cluster Creation Status Failed",
+                  "Error": "Create ElasticMapReduce Cluster FAILED"
+                },
+                "EMRStepSubmit": {
+                  "Type": "Task",
+                  "Resource": "${emrstepsubmmitlambdaArn}",
+                  "InputPath":"$",
+                  "ResultPath": "$.step_id",
+                 "Next": "WaitTimeEmrStep"
+                },
+                "WaitTimeEmrStep": {
+                  "Type": "Wait",
+                  "SecondsPath": "$.step_wait_time",
+                  "Next": "GetEMRStepStatus"
+                },
+                "GetEMRStepStatus": {
+                  "Type": "Task",
+                  "Resource": "${getemrstepstatuslambdaArn}",
+                  "Next": "IsEMRStepComplete?",
+                  "ResultPath": "$.taskresult"
+                },
+                "IsEMRStepComplete?": {
+                  "Type": "Choice",
+                  "Choices": [
+                    {
+                      "Variable": "$.taskresult",
+                      "StringEquals": "FAILED",
+                      "Next": "EMRStepFailed"
+                    },
+                    {
+                      "Variable": "$.taskresult",
+                      "StringEquals": "OK",
+                      "Next": "GetNextEMRStep"
+                    }
+                  ],
+                  "Default": "WaitTimeEmrStep"
+                },
+                "EMRStepFailed": {
+                  "Type": "Pass",
+                  "ResultPath": "$.taskresults",
+                  "Next": "GetNextEMRStep"
+                },
+                 "GetNextEMRStep": {
+                  "Type": "Task",
+                  "Resource": "${getnextemrsteplambdaArn}",
+                   "InputPath":"$",
+                   "ResultPath": "$.iterator",
+                  "Next": "IsNextJobAvailable?"
+                },
+                 "IsNextJobAvailable?": {
+                  "Type": "Choice",
+                  "Choices": [
+                    {
+                      "Variable": "$.iterator.continue",
+                       "BooleanEquals": true,
+                      "Next": "EMRStepSubmit"
+                    }
+                  ],
+                    "Default": "AllJobsCompleted"
+                },
+                "AllJobsCompleted": {
+                 "Type": "Task",
+                 "Resource": "${alljobscompletedlambdaArn}",
+                  "InputPath": "$",
+                 "End": true
+               }
+              }
+            }
+          - {createemrlambdaArn: !GetAtt [ CreateBlogEMR, Arn ],getclusterstatuslambdaArn: !GetAtt [ EMRClusterStatus, Arn ],emrstepsubmmitlambdaArn: !GetAtt [ EMRAddEMRStep, Arn ],getemrstepstatuslambdaArn: !GetAtt [ EMRStepStatus, Arn ],getnextemrsteplambdaArn: !GetAtt [ GetNextEMRJob, Arn ],alljobscompletedlambdaArn: !GetAtt [ AllJobsCompleted, Arn ],etlstatemachinedaterotationlambdaArn: !GetAtt [ ETLStateMachineDateRotation, Arn ]}
+      RoleArn:
+        Fn::ImportValue:
+          Fn::Join:
+          - ''
+          - - StateMachineLambdaInvokeRole
+  ScheduledRule:
+    Type: 'AWS::Events::Rule'
+    Properties:
+      Description: ScheduledRule
+      ScheduleExpression: rate(1 day)
+      State: ENABLED
+      Targets:
+        - Arn: !Ref ETLStateMachine
+          Id: StateMachineV1
+          RoleArn:
+            Fn::ImportValue:
+               Fn::Join:
+               - ''
+               - - StateMachine-Execution-Role
+          Input: >-
+            {"1": "deposit","2": "investment","3": "loan",  "4":
+            "shipment","wait_time": 190,  "step_wait_time": 120,  "cluster_id":
+            "","step_id": "","iterator": {"count": 5,  "index": 1,"step": 1}}
+Outputs:
+  Message:
+    Description: The message from the custom resource.
+    Value: !GetAtt
+      - InsertDDBETLConfig
+      - Message
+  ETLStateMachineArn:
+    Description: Arn of the State Machine created
+    Value: !Ref ETLStateMachine

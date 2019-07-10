@@ -1,0 +1,105 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: IAM Role with a permissions boundary
+Resources:
+  StateMachineLambdaInvokeRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: 'StateMachineLambdInvokeRole'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - !Sub 'states.${AWS::Region}.amazonaws.com'
+          Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'lambda:InvokeFunction'
+                Resource: '*'
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: 'StepFunction-Lambda-Execution-Role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - 'lambda.amazonaws.com'
+          Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+      - 'arn:aws:iam::aws:policy/AmazonElasticMapReduceFullAccess'
+      - 'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess'
+      - 'arn:aws:iam::aws:policy/AmazonSNSFullAccess'
+  BlogLambdaExecPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName: BlogLambdaExecPolicy
+      Description: Allow cloudwatch to send messages to default eventbus in SSNonProd
+      Roles:
+        - !Ref LambdaExecutionRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'logs:CreateLogGroup'
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
+            Resource: [
+              "*"
+            ]
+          - Effect: Allow
+            Action:
+              - dynamodb:*
+            Resource: "*"
+  StateMachineExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: 'StepFunction-StateMachine-Execution-Role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - 'events.amazonaws.com'
+          Action: 'sts:AssumeRole'
+  StateMachineExecPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName: StateMachineExecPolicy
+      Description: Allow cloudwatch rule to invoke stepfunctions
+      Roles:
+        - !Ref StateMachineExecutionRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'states:StartExecution'
+            Resource: "*"
+Outputs:
+  StateMachineLambdaInvocationRole:
+    Description: StateMachine Execution Role to be used to invoke StepFunction execution
+    Value: !GetAtt StateMachineLambdaInvokeRole.Arn
+    Export:
+      Name: StateMachineLambdaInvokeRole
+  LambdaExecRole:
+    Description: Lambda Role to be used in SF execution
+    Value: !GetAtt LambdaExecutionRole.Arn
+    Export:
+      Name: StepFunction-Lambda-Execution-Role
+  StateMachineExecRole:
+    Description: StateMachine Execution Role to be used to invoke StepFunction execution
+    Value: !GetAtt StateMachineExecutionRole.Arn
+    Export:
+      Name: StateMachine-Execution-Role

@@ -1,0 +1,154 @@
+[
+  {
+    "ParameterKey": "CreateEMRModuleName",
+    "ParameterValue": "aws_etl_emr_cluster_create"
+  },
+  {
+    "ParameterKey": "AllJobsCompletedModule",
+    "ParameterValue": "aws_etl_all_steps_completed"
+  },
+  {
+    "ParameterKey": "AllJobsCompletedS3Key",
+    "ParameterValue": "lambdas/aws_etl_all_steps_completed.zip"
+  },
+  {
+    "ParameterKey": "ClusterStatusModuleName",
+    "ParameterValue": "aws_etl_emr_cluster_status"
+  },
+  {
+    "ParameterKey": "ClusterStatusS3Key",
+    "ParameterValue": "lambdas/aws_etl_emr_cluster_status.zip"
+  },
+  {
+    "ParameterKey": "configtable",
+    "ParameterValue": "aws_etl_conf"
+  },
+  {
+    "ParameterKey": "CreateEMRS3Key",
+    "ParameterValue": "lambdas/aws_etl_emr_cluster_create.zip"
+  },
+  {
+    "ParameterKey": "ec2keyname",
+    "ParameterValue": "ty-private-emr-kp"
+  },
+  {
+    "ParameterKey": "ec2subnetid",
+    "ParameterValue": "subnet-0aaf3050"
+  },
+  {
+    "ParameterKey": "emrbalocation",
+    "ParameterValue": "s3://dfw-meetup-sf/ba/bootstrap-emr.sh"
+  },
+  {
+    "ParameterKey": "emrname",
+    "ParameterValue": "AWS_SF_ETL_CLUSTER"
+  },
+  {
+    "ParameterKey": "emrsteplocation",
+    "ParameterValue": "s3://dfw-meetup-sf/ba/bootstrap-emr-step.sh"
+  },
+  {
+    "ParameterKey": "EMRStepStatusModuleName",
+    "ParameterValue": "aws_etl_emr_step_status"
+  },
+  {
+    "ParameterKey": "EMRStepStatusS3Key",
+    "ParameterValue": "lambdas/aws_etl_emr_step_status.zip"
+  },
+  {
+    "ParameterKey": "EMRStepSubmitModuleName",
+    "ParameterValue": "aws_etl_add_emr_step"
+  },
+  {
+    "ParameterKey": "EMRStepSubmitS3Key",
+    "ParameterValue": "lambdas/aws_etl_add_emr_step.zip"
+  },
+  {
+    "ParameterKey": "GetNextEMRJobModule",
+    "ParameterValue": "aws_etl_iterator"
+  },
+  {
+    "ParameterKey": "GetNextEMRJobS3Key",
+    "ParameterValue": "lambdas/aws_etl_iterator.zip"
+  },
+  {
+    "ParameterKey": "historytable",
+    "ParameterValue": "aws_etl_history"
+  },
+  {
+    "ParameterKey": "jobflowrole",
+    "ParameterValue": "EMR_EC2_DefaultRole"
+  },
+  {
+    "ParameterKey": "loguri",
+    "ParameterValue": "s3n://aws-logs-573906581002-us-west-2/elasticmapreduce"
+  },
+  {
+    "ParameterKey": "mastersg",
+    "ParameterValue": "sg-a6cddadb"
+  },
+  {
+    "ParameterKey": "regionname",
+    "ParameterValue": "us-west-2"
+  },
+  {
+    "ParameterKey": "releaselabel",
+    "ParameterValue": "emr-5.17.0"
+  },
+  {
+    "ParameterKey": "S3Bucket",
+    "ParameterValue": "dfw-meetup-sf"
+  },
+  {
+    "ParameterKey": "serviceaccesssg",
+    "ParameterValue": "sg-22cbdc5f"
+  },
+  {
+    "ParameterKey": "servicerole",
+    "ParameterValue": "EMR_DefaultRole"
+  },
+  {
+    "ParameterKey": "slavesg",
+    "ParameterValue": "sg-05cdda78"
+  },
+  {
+    "ParameterKey": "snstopic",
+    "ParameterValue": "arn:aws:sns:us-west-2:573906581002:blog-etl-state-machine"
+  },
+  {
+    "ParameterKey": "DDBConfigModule",
+    "ParameterValue": "aws_etl_conf_jobs_custom_resource"
+  },
+  {
+    "ParameterKey": "DDBConfigS3Key",
+    "ParameterValue": "lambdas/aws_etl_conf_jobs_custom_resource.zip"
+  },
+  {
+    "ParameterKey": "CustomResourceS3Key",
+    "ParameterValue": "cfn/config.txt"
+  },
+  {
+    "ParameterKey": "emrcommandrunnerscript",
+    "ParameterValue": "s3://us-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
+  },
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "NonProd"
+  },
+  {
+    "ParameterKey": "SubEnvironment",
+    "ParameterValue": "dev2"
+  },
+  {
+    "ParameterKey": "AccountName",
+    "ParameterValue": "aws-etl-state-machine"
+  },
+  {
+    "ParameterKey": "ETLStateMachineDateRotationS3Key",
+    "ParameterValue": "lambdas/aws_etl_date_rotation.zip"
+  },
+  {
+    "ParameterKey": "ETLStateMachineDateRotationModuleName",
+    "ParameterValue": "aws_etl_date_rotation"
+  }
+]
