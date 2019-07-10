@@ -23,7 +23,7 @@ This intent of this project is to provide an example pattern for designing an in
 
 ### 4. Architecture Diagram
 
-![alt text](https://code.amazon.com/packages/Blog-etl-stepfunction-orchestra/blobs/mainline/--/IncrementalIngestionDataLake.png)
+![alt text](https://github.com/awslabs/amazon-s3-step-functions-ingestion-orchestration/blob/master/IncrementalIngestionDataLake.png)
 
 
 ### 5. Two Major Steps
