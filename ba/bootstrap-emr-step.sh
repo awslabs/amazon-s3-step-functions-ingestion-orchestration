@@ -13,4 +13,4 @@
 
 #!/bin/bash
 #sudo aws s3 cp s3://temitayo-gwl/libs/postgresql-42.2.5.jar /usr/lib/spark/jars/
-sudo aws s3 cp s3://dfw-meetup-sf/postgresql-42.2.6.jar /usr/lib/spark/jars/
+sudo aws s3 cp s3://<PlaceholderBucket>/postgresql-42.2.6.jar /usr/lib/spark/jars/

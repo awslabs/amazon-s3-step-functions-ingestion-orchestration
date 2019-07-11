@@ -73,7 +73,6 @@ Parameters:
   CFNScriptLocation:
     Description: Path to the Glue Job script to be executed
     Type: String
-    #Default: s3://aws-glue-scripts-573906581002-us-west-2/temitayo/gwf-glue-etl-job1.py
     Default: s3://dfw-meetup-sf/aws-glue-etl-job.py
   CFNConnectionName:
     Description: Name of the Glue connection that will be created

@@ -47,8 +47,9 @@ This intent of this project is to provide an example pattern for designing an in
 5. Create a Aurora RDS database using this cloudformation template postgredb.yml
 6. From the cloned repository navigate to the glue folder and upload the aws-etl-start-crawler-custom-resource.py.zip to the glue folder in S3 bucket location. Note this location as you will need to provide it in the cloudformation stack below in (8)
 7. From the cloned repository navigate to the glue folder and upload the aws-etl-start-job-custom-resource.py.zip to the glue folder in S3 bucket location. Note this location as you will need in the cloudformation stack below in (8).
-8. Create Glue Crawler and Job load  stack using the aws-etl-load-rds.yml cloudformation template.  This cloudformation stack will create Glue crawlers that will crawl the s3 bucket locations and load data from the s3 bucket locations into the Aurora database already created.
-9. Parameter Values for above
+8. Open the aws-glue-etl-job.py, replace the values for database (blog1) with your database name.
+9. Create Glue Crawler and Job load  stack using the aws-etl-load-rds.yml cloudformation template.  This cloudformation stack will create Glue crawlers that will crawl the s3 bucket locations and load data from the s3 bucket locations into the Aurora database already created.
+10. Parameter Values for above
 
 | Parameter Name |	Parameter Value |
 |----------------|------------------|
@@ -112,12 +113,33 @@ aws s3 sync ba/ s3://dfw-meetup-sf/ba/
 6. Navigate to the cfn/aws-etl-stepfunction.json template and the cfn/stepfunction-parameters.json file. Replace the parameter values with your
 own parameter values.
 7. Navigate to the AWS management console for Cloudformation and browse to the cfn folder,, load the aws-roles.yml to create the roles that will be used by the pipeline.
-8.
-8. Navigate to the CFN folder, From the AWS command line execute below command to create the cloudformation stack.
+8. Modify the config.txt replace the bucket name values with your bucket name.
+
+|deposit|11/5/18|2018-11-04 00:00:000|2018-11-05 00:00:000|j-0000000000000|PENDING|s3://my-bucketholder/RAW/|s3://my-bucketholder/spark/ingest_on_prem_db_tables.py|spark|cfn_s3_sprk_1_deposits|shipmt_date_tstmp|quarter| 1| 1000| 10
+|investment|11/5/18|2018-11-04 00:00:000|2018-11-05 00:00:000|j-0000000000000|PENDING|s3://my-bucketholder/RAW/|s3://my-bucketholder/spark/ingest_on_prem_db_tables.py|spark|cfn_s3_sprk_1_investments|shipmt_date_tstmp|quarter| 1| 1000| 10
+|loan|11/5/18|2018-11-04 00:00:000|2018-11-05 00:00:000|j-0000000000000|PENDING|s3://my-bucketholder/RAW/|s3://my-bucketholder/spark/ingest_on_prem_db_tables.py|spark|cfn_s3_sprk_1_loans|shipmt_date_tstmp|quarter| 1| 1000| 10
+|shipment|11/5/18|2018-11-04 00:00:000|2018-11-05 00:00:000|j-0000000000000|PENDING|s3://my-bucketholder/RAW/|s3://my-bucketholder/spark/ingest_on_prem_db_tables.py|spark|cfn_s3_sprk_1_shipments|shipmt_date_tstmp|quarter| 1| 1000| 10 |
+
+9. Navigate to the CFN folder, From the AWS command line execute below command to create the cloudformation stack.
 
 aws cloudformation create-stack --stack-name gwfstepfunction --template-body file://aws-etl-stepfunction.json  --region us-west-2 --capabilities CAPABILITY_IAM  --parameters file://stepfunction-parameters.json
 
 ![alt text](https://github.com/awslabs/amazon-s3-step-functions-ingestion-orchestration/blob/master/S3BucketDatalakeExampleLayout.png)
+
+RAW (immutable)
+•	RAW-us-east-1/sourcename/tablename/original/full (full load)
+partitioned by arrival date as-is
+•	RAW-us-east-1/sourcename/tablename/original/incremental (changes/updates/inserts/deletes)
+partitioned by arrival date as-is incoming format
+•	FORMAT-us-east-1/sourcename/tablename/masked/full (w/sensitive data masked, if any) partitioned by arrival date as-is incoming format
+•	FORMAT-us-east-1/sourcename/tablename/masked/incremental (w/sensitive data masked, if any) partitioned by arrival date as-is
+
+FORMAT (mutable)
+•	FORMAT-us-east-1/sourcename/tablename/original/full (w/ original data)
+	partitioned by
+•	xx-FORMAT-us-east-1/sourcename/tablename/original/incremental (w/ original data.
+•	xx-FORMAT-us-east-1/sourcename/tablename/masked/full (w/ sensitive data masked, if any.
+•	xx-FORMAT-us-east-1/sourcename/tablename/masked/incremental (w/ sensitive data masked, if any.
 
 ####At the end of this part we would have created the following:
 1. An EMR Cluster

@@ -81,7 +81,7 @@
   },
   {
     "ParameterKey": "loguri",
-    "ParameterValue": "s3n://aws-logs-573906581002-us-west-2/elasticmapreduce"
+    "ParameterValue": "s3n://aws-logs-111111111111-us-west-2/elasticmapreduce"
   },
   {
     "ParameterKey": "mastersg",
@@ -113,7 +113,7 @@
   },
   {
     "ParameterKey": "snstopic",
-    "ParameterValue": "arn:aws:sns:us-west-2:573906581002:blog-etl-state-machine"
+    "ParameterValue": "arn:aws:sns:us-west-2:111111111111:aws-etl-state-machine"
   },
   {
     "ParameterKey": "DDBConfigModule",

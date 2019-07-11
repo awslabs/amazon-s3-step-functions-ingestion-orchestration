@@ -5,22 +5,22 @@
         "CreateEMRModuleName": {
             "Description": "The name of the Python file",
             "Type": "String",
-            "Default": "blog_etl_emr_cluster_create"
+            "Default": "aws_etl_emr_cluster_create"
         },
         "S3Bucket": {
             "Description": "The name of the bucket that contains your packaged source",
             "Type": "String",
-            "Default": "temitayo-blog"
+            "Default": "temitayo-aws"
         },
         "CreateEMRS3Key": {
             "Description": "The name of the ZIP package",
             "Type": "String",
-            "Default": "lambdas/blog_etl_emr_cluster_create.zip"
+            "Default": "lambdas/aws_etl_emr_cluster_create.zip"
         },
         "emrname": {
             "Description": "The name of the emr",
             "Type": "String",
-            "Default": "BLOG_EMR_ETL_INCREMENTAL_CLUSTER"
+            "Default": "aws_EMR_ETL_INCREMENTAL_CLUSTER"
         },
         "releaselabel": {
             "Description": "The emr release label",
@@ -60,12 +60,12 @@
         "emrsteplocation": {
             "Description": "The location of the emr step  script",
             "Type": "String",
-            "Default": "s3://temitayo-blog/ba/bootstrap-emr-step.sh"
+            "Default": "s3://temitayo-aws/ba/bootstrap-emr-step.sh"
         },
         "emrbalocation": {
             "Description": "The location of the bootstrap action script",
             "Type": "String",
-            "Default": "s3://temitayo-blog/ba/bootstrap-emr.sh"
+            "Default": "s3://temitayo-aws/ba/bootstrap-emr.sh"
         },
         "jobflowrole": {
             "Description": "The name of the EMR Job FLow Role",
@@ -80,12 +80,12 @@
         "ClusterStatusModuleName": {
             "Description": "The name of the Python file",
             "Type": "String",
-            "Default": "blog_etl_emr_cluster_status"
+            "Default": "aws_etl_emr_cluster_status"
         },
         "ClusterStatusS3Key": {
             "Description": "The name of the ZIP package",
             "Type": "String",
-            "Default": "lambdas/blog_etl_emr_cluster_status.zip"
+            "Default": "lambdas/aws_etl_emr_cluster_status.zip"
         },
         "regionname": {
             "Description": "region where function will be deployed",
@@ -95,67 +95,67 @@
         "configtable": {
             "Description": "The DDB config table",
             "Type": "String",
-            "Default": "blog-etl-conf"
+            "Default": "aws-etl-conf"
         },
         "snstopic": {
             "Description": "The SNS topic to notify",
             "Type": "String",
-            "Default": "arn:aws:sns:us-west-2:573906581002:blog-etl-state-machine"
+            "Default": "arn:aws:sns:us-west-2:573906581002:aws-etl-state-machine"
         },
         "EMRStepSubmitModuleName": {
             "Description": "The name of the Python file",
             "Type": "String",
-            "Default": "blog_etl_add_emr_step"
+            "Default": "aws_etl_add_emr_step"
         },
         "EMRStepSubmitS3Key": {
             "Description": "The name of the ZIP package",
             "Type": "String",
-            "Default": "lambdas/blog_etl_add_emr_step.zip"
+            "Default": "lambdas/aws_etl_add_emr_step.zip"
         },
         "EMRStepStatusModuleName": {
             "Description": "The name of the Python file",
             "Type": "String",
-            "Default": "blog_etl_emr_step_status"
+            "Default": "aws_etl_emr_step_status"
         },
         "EMRStepStatusS3Key": {
             "Description": "The name of the ZIP package",
             "Type": "String",
-            "Default": "lambdas/blog_etl_emr_step_status.zip"
+            "Default": "lambdas/aws_etl_emr_step_status.zip"
         },
         "historytable": {
             "Description": "The DDB history table",
             "Type": "String",
-            "Default": "blog-etl-history"
+            "Default": "aws-etl-history"
         },
         "GetNextEMRJobModule": {
             "Description": "The name of the Python file",
             "Type": "String",
-            "Default": "blog_etl_iterator"
+            "Default": "aws_etl_iterator"
         },
         "GetNextEMRJobS3Key": {
             "Description": "The name of the ZIP package",
             "Type": "String",
-            "Default": "lambdas/blog_etl_iterator.zip"
+            "Default": "lambdas/aws_etl_iterator.zip"
         },
         "AllJobsCompletedModule": {
             "Description": "The name of the Python file",
             "Type": "String",
-            "Default": "blog_etl_all_steps_completed"
+            "Default": "aws_etl_all_steps_completed"
         },
         "AllJobsCompletedS3Key": {
             "Description": "The name of the ZIP package",
             "Type": "String",
-            "Default": "lambdas/blog_etl_all_steps_completed.zip"
+            "Default": "lambdas/aws_etl_all_steps_completed.zip"
         },
         "DDBConfigModule": {
             "Description": "The name of the Python file",
             "Type": "String",
-            "Default": "blog_etl_conf_jobs_custom_resource"
+            "Default": "aws_etl_conf_jobs_custom_resource"
         },
         "DDBConfigS3Key": {
             "Description": "The name of the ZIP package",
             "Type": "String",
-            "Default": "lambdas/blog_etl_conf_jobs_custom_resource.zip"
+            "Default": "lambdas/aws_etl_conf_jobs_custom_resource.zip"
         },
         "CustomResourceS3Key": {
             "Description": "The name of the dynamodb config table columnn to be created",
@@ -170,12 +170,12 @@
         "ETLStateMachineDateRotationS3Key": {
             "Description": "The name of the ZIP package",
             "Type": "String",
-            "Default": "lambdas/blog_etl_date_rotation.zip"
+            "Default": "lambdas/aws_etl_date_rotation.zip"
         },
         "ETLStateMachineDateRotationModuleName": {
             "Description": "The name of the Python file",
             "Type": "String",
-            "Default": "blog_etl_date_rotation"
+            "Default": "aws_etl_date_rotation"
         },
         "Environment": {
             "Type": "String",
@@ -190,7 +190,7 @@
         "AccountName": {
             "Type": "String",
             "Description": "Name of the application",
-            "Default": "blog-state-machine"
+            "Default": "aws-state-machine"
         }
     },
     "Resources": {
