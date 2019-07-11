@@ -114,12 +114,15 @@ aws s3 sync ba/ s3://dfw-meetup-sf/ba/
 own parameter values.
 7. Navigate to the AWS management console for Cloudformation and browse to the cfn folder,, load the aws-roles.yml to create the roles that will be used by the pipeline.
 8. Modify the config.txt replace the bucket name values with your bucket name.
+
+
 | job_name | load_date | load_window_start | load_window_stop | job_flow_id | job_status | output_dir | script_source | database_name | table_name | window_db_column | partition_by_col | lower_bound | upper_bound | num_partitions |
 |-------|-------|-------------|---------------|------------|--------|--------------|------------|-------|-------|-------|-------|-------|-------|-------|
 | deposit |11/5/18 | 2018-11-04 00:00:000 | 2018-11-05 00:00:000 | j-0000000000000 | PENDING | s3://my-bucketholder/RAW/ | s3://my-bucketholder/spark/ingest_on_prem_db_tables.py | spark | cfn_s3_sprk_1_deposits | shipmt_date_tstmp | quarter | 1 | 1000 | 10 |
 | investment | 11/5/18 | 2018-11-04 00:00:000 | 2018-11-05 00:00:000 | j-0000000000000 | PENDING | s3://my-bucketholder/RAW/ | s3://my-bucketholder/spark/ingest_on_prem_db_tables.py | spark | cfn_s3_sprk_1_investments | shipmt_date_tstmp | quarter | 1 | 1000 | 10 |
 | loan | 11/5/18 | 2018-11-04 00:00:000 | 2018-11-05 00:00:000 | j-0000000000000 | PENDING | s3://my-bucketholder/RAW/ | s3://my-bucketholder/spark/ingest_on_prem_db_tables.py | spark | cfn_s3_sprk_1_loans | shipmt_date_tstmp | quarter | 1 | 1000 | 10 |
 | shipment | 11/5/18 | 2018-11-04 00:00:000 | 2018-11-05 00:00:000 | j-0000000000000 | PENDING | s3://my-bucketholder/RAW/ | s3://my-bucketholder/spark/ingest_on_prem_db_tables.py | spark | cfn_s3_sprk_1_shipments | shipmt_date_tstmp | quarter | 1 | 1000 | 10 |
+
 
 9. Navigate to the CFN folder, From the AWS command line execute below command to create the cloudformation stack.
 
