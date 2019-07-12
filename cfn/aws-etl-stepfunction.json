@@ -547,7 +547,7 @@
                                 "Fn::Join": [
                                     "",
                                     [
-                                        "AWS-ETL-EMR-ClusterinstanceProfileRole"
+                                        "AWS-ETL-EMRClusterinstanceProfile"
                                     ]
                                 ]
                             }
