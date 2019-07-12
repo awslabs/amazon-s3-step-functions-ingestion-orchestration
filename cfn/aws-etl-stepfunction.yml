@@ -260,7 +260,7 @@ Resources:
             Fn::ImportValue:
                Fn::Join:
                - ''
-               - - aws-etl-sns-topic-name
+               - - aws-etl-sns-topic-arn
   CreateBlogEMR:
     Type: 'AWS::Lambda::Function'
     Properties:
@@ -348,7 +348,7 @@ Resources:
             Fn::ImportValue:
               Fn::Join:
                 - ''
-                - - aws-etl-sns-topic-name
+                - - aws-etl-sns-topic-arn
   EMRAddEMRStep:
     Type: 'AWS::Lambda::Function'
     Properties:
@@ -406,7 +406,7 @@ Resources:
             Fn::ImportValue:
               Fn::Join:
                 - ''
-                - - aws-etl-sns-topic-name
+                - - aws-etl-sns-topic-arn
   GetNextEMRJob:
     Type: 'AWS::Lambda::Function'
     Properties:
@@ -459,7 +459,7 @@ Resources:
             Fn::ImportValue:
               Fn::Join:
                 - ''
-                - - aws-etl-sns-topic-name
+                - - aws-etl-sns-topic-arn
   ETLStateMachine:
     Type: "AWS::StepFunctions::StateMachine"
     Properties:
