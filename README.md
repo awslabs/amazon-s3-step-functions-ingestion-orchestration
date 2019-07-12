@@ -125,9 +125,11 @@ own parameter values.
 | shipment | 11/5/18 | 2018-11-04 00:00:000 | 2018-11-05 00:00:000 | j-0000000000000 | PENDING | s3://my-bucketholder/RAW/ | s3://my-bucketholder/spark/ingest_on_prem_db_tables.py | spark | cfn_s3_sprk_1_shipments | shipmt_date_tstmp | quarter | 1 | 1000 | 10 |
 
 
-9. Navigate to the CFN folder, From the AWS command line execute below command to create the cloudformation stack.
+14. Navigate to the CFN folder, From the AWS command line execute below command to create the cloudformation stack.
 
 aws cloudformation create-stack --stack-name gwfstepfunction --template-body file://aws-etl-stepfunction.json  --region us-west-2 --capabilities CAPABILITY_IAM  --parameters file://stepfunction-parameters.json
+
+Below is an example folder structure for an S3 datalake
 
 ![alt text](https://github.com/awslabs/amazon-s3-step-functions-ingestion-orchestration/blob/master/S3BucketDatalakeExampleLayout.png)
 
