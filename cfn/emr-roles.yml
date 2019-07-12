@@ -30,6 +30,7 @@ Resources:
               - 'sts:AssumeRole'
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforEC2Role'
+        - 'arn:aws:iam::aws:policy/AmazonSSMFullAccess'
       Path: /
       RoleName: EmrEtlInstanceProfile
   EMRClusterInstanceProfile:
