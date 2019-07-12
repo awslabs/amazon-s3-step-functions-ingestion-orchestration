@@ -55,9 +55,9 @@ dropnullfields6 = DropNullFields.apply(frame = resolvechoice5, transformation_ct
 ## @args: [catalog_connection = "Postgresql-JDBC", connection_options = {"dbtable": "postgreglue_public_loans", "database": "spark"}, transformation_ctx = "datasink4"]
 ## @return: datasink4
 ## @inputs: [frame = dropnullfields3]
-datasink4 = glueContext.write_dynamic_frame.from_jdbc_conf(frame = dropnullfields3, catalog_connection = connectionName, connection_options = {"dbtable": table1, "database": "blog1"}, transformation_ctx = "datasink4")
-datasink5 = glueContext.write_dynamic_frame.from_jdbc_conf(frame = dropnullfields4, catalog_connection = connectionName, connection_options = {"dbtable": table2, "database": "blog1"}, transformation_ctx = "datasink5")
-datasink6 = glueContext.write_dynamic_frame.from_jdbc_conf(frame = dropnullfields5, catalog_connection = connectionName, connection_options = {"dbtable": table3, "database": "blog1"}, transformation_ctx = "datasink6")
-datasink7 = glueContext.write_dynamic_frame.from_jdbc_conf(frame = dropnullfields6, catalog_connection = connectionName, connection_options = {"dbtable": table4, "database": "blog1"}, transformation_ctx = "datasink7")
+datasink4 = glueContext.write_dynamic_frame.from_jdbc_conf(frame = dropnullfields3, catalog_connection = connectionName, connection_options = {"dbtable": table1, "database": "etl"}, transformation_ctx = "datasink4")
+datasink5 = glueContext.write_dynamic_frame.from_jdbc_conf(frame = dropnullfields4, catalog_connection = connectionName, connection_options = {"dbtable": table2, "database": "etl"}, transformation_ctx = "datasink5")
+datasink6 = glueContext.write_dynamic_frame.from_jdbc_conf(frame = dropnullfields5, catalog_connection = connectionName, connection_options = {"dbtable": table3, "database": "etl"}, transformation_ctx = "datasink6")
+datasink7 = glueContext.write_dynamic_frame.from_jdbc_conf(frame = dropnullfields6, catalog_connection = connectionName, connection_options = {"dbtable": table4, "database": "etl"}, transformation_ctx = "datasink7")
 
 job.commit()

@@ -14,7 +14,6 @@ from __future__ import print_function
 import sys
 from pyspark.sql import SparkSession
 import boto3
-#to execute on master node  spark-submit shpmtspark.py s3n://temitayo-gwl/sparkwrites/ shipments "2016-01-01 00:00:00" "2017-01-01 00:00:000" shipmt_date_tstmp
 ssm = boto3.client('ssm')
 if __name__ == "__main__":
     if len(sys.argv) != 11:

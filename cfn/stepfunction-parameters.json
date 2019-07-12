@@ -76,16 +76,8 @@
     "ParameterValue": "aws_etl_history"
   },
   {
-    "ParameterKey": "jobflowrole",
-    "ParameterValue": "EMR_EC2_DefaultRole"
-  },
-  {
     "ParameterKey": "loguri",
     "ParameterValue": "s3n://aws-logs-111111111111-us-west-2/elasticmapreduce"
-  },
-  {
-    "ParameterKey": "mastersg",
-    "ParameterValue": "sg-a6cddadb"
   },
   {
     "ParameterKey": "regionname",
@@ -98,22 +90,6 @@
   {
     "ParameterKey": "S3Bucket",
     "ParameterValue": "dfw-meetup-sf"
-  },
-  {
-    "ParameterKey": "serviceaccesssg",
-    "ParameterValue": "sg-22cbdc5f"
-  },
-  {
-    "ParameterKey": "servicerole",
-    "ParameterValue": "EMR_DefaultRole"
-  },
-  {
-    "ParameterKey": "slavesg",
-    "ParameterValue": "sg-05cdda78"
-  },
-  {
-    "ParameterKey": "snstopic",
-    "ParameterValue": "arn:aws:sns:us-west-2:111111111111:aws-etl-state-machine"
   },
   {
     "ParameterKey": "DDBConfigModule",

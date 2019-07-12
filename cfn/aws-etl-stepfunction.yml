@@ -26,7 +26,7 @@ Parameters:
   loguri:
     Description: The name of the log uri location
     Type: String
-    Default: 's3n://aws-logs-573906581002-us-west-2/elasticmapreduce'
+    Default: 's3n://aws-logs-111111111111-us-west-2/elasticmapreduce'
   ec2keyname:
     Description: The name of the key pair
     Type: String
@@ -35,18 +35,6 @@ Parameters:
     Description: The id of the subnet where the emr is deployed
     Type: String
     Default: subnet-0aaf3050
-  mastersg:
-    Description: The name of the emr master  security group
-    Type: String
-    Default: sg-a6cddadb
-  slavesg:
-    Description: The name of the emr slave  security group
-    Type: String
-    Default: sg-05cdda78
-  serviceaccesssg:
-    Description: The name of the service access security group
-    Type: String
-    Default: sg-22cbdc5f
   emrsteplocation:
     Description: The location of the emr step  script
     Type: String
@@ -55,14 +43,6 @@ Parameters:
     Description: The location of the bootstrap action script
     Type: String
     Default: 's3://temitayo-aws/ba/bootstrap-emr.sh'
-  jobflowrole:
-    Description: The name of the EMR Job FLow Role
-    Type: String
-    Default: EMR_EC2_DefaultRole
-  servicerole:
-    Description: The name of the EMR Service Role
-    Type: String
-    Default: EMR_DefaultRole
   ClusterStatusModuleName:
     Description: The name of the Python file
     Type: String
@@ -79,10 +59,6 @@ Parameters:
     Description: The DDB config table
     Type: String
     Default: aws-etl-conf
-  snstopic:
-    Description: The SNS topic to notify
-    Type: String
-    Default: 'arn:aws:sns:us-west-2:573906581002:aws-etl-state-machine'
   EMRStepSubmitModuleName:
     Description: The name of the Python file
     Type: String
@@ -280,7 +256,11 @@ Resources:
         Variables:
           region: !Ref regionname
           table_name: !Ref configtable
-          sns_topic: !Ref snstopic
+          sns_topic:
+            Fn::ImportValue:
+               Fn::Join:
+               - ''
+               - - aws-etl-sns-topic-name
   CreateBlogEMR:
     Type: 'AWS::Lambda::Function'
     Properties:
@@ -310,13 +290,33 @@ Resources:
           log_uri: !Ref loguri
           ec2_keyname: !Ref ec2keyname
           ec2_subnetid: !Ref ec2subnetid
-          master_sg: !Ref mastersg
-          slave_sg: !Ref slavesg
-          serviceaccess_sg: !Ref serviceaccesssg
+          master_sg:
+            Fn::ImportValue:
+              Fn::Join:
+              - ''
+              - - AWS-ETL-ElasticMapReduceMasterPrivate-SG
+          slave_sg:
+            Fn::ImportValue:
+              Fn::Join:
+              - ''
+              - - AWS-ETL-ElasticMapReduceSlavePrivate-SG
+          serviceaccess_sg:
+            Fn::ImportValue:
+              Fn::Join:
+              - ''
+              - - AWS-ETL-ElasticMapReduceServiceAccess-SG
           emr_step_location: !Ref emrsteplocation
           emr_ba_location: !Ref emrbalocation
-          job_flowrole: !Ref jobflowrole
-          service_role: !Ref servicerole
+          job_flowrole:
+            Fn::ImportValue:
+              Fn::Join:
+              - ''
+              - - AWS-ETL-EMR-ClusterinstanceProfileRole
+          service_role:
+            Fn::ImportValue:
+              Fn::Join:
+              - ''
+              - - AWS-ETL-EMR-ClusterServiceRole
           commandrunner_region: !Ref emrcommandrunnerscript
   EMRClusterStatus:
     Type: 'AWS::Lambda::Function'
@@ -334,7 +334,7 @@ Resources:
           - ''
           - - StepFunction-Lambda-Execution-Role
       Runtime: python3.7
-      Timaws: '45'
+      Timeout: '45'
       Tags:
         - Key: Name
           Value: !Sub ${AccountName}-${Environment}-${SubEnvironment}-ClusterStatusModule
@@ -344,7 +344,11 @@ Resources:
         Variables:
           region: !Ref regionname
           table_name: !Ref configtable
-          sns_topic: !Ref snstopic
+          sns_topic:
+            Fn::ImportValue:
+              Fn::Join:
+                - ''
+                - - aws-etl-sns-topic-name
   EMRAddEMRStep:
     Type: 'AWS::Lambda::Function'
     Properties:
@@ -398,7 +402,11 @@ Resources:
           region: !Ref regionname
           history_table: !Ref historytable
           config_table: !Ref configtable
-          sns_topic: !Ref snstopic
+          sns_topic:
+            Fn::ImportValue:
+              Fn::Join:
+                - ''
+                - - aws-etl-sns-topic-name
   GetNextEMRJob:
     Type: 'AWS::Lambda::Function'
     Properties:
@@ -447,7 +455,11 @@ Resources:
         Variables:
           region: !Ref regionname
           table: !Ref historytable
-          sns_topic: !Ref snstopic
+          sns_topic:
+            Fn::ImportValue:
+              Fn::Join:
+                - ''
+                - - aws-etl-sns-topic-name
   ETLStateMachine:
     Type: "AWS::StepFunctions::StateMachine"
     Properties:

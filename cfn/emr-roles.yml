@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: EMR Cluster Roles
+Resources:
+  EMRClusterServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - elasticmapreduce.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole'
+      Path: /
+  EMRClusterInstanceProfileRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforEC2Role'
+      Path: /
+      RoleName: EmrEtlInstanceProfile
+  EMRClusterInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      InstanceProfileName: EmrEtlInstanceProfile
+      Roles:
+        - !Ref EMRClusterInstanceProfileRole
+Outputs:
+  EMRClusterServiceRole:
+    Description: EMR Cluster Service Role
+    Value: !GetAtt EMRClusterServiceRole.Arn
+    Export:
+      Name: AWS-ETL-EMR-ClusterServiceRole
+  EMRClusterInstanceProfileRole:
+    Description: Lambda Role to be used in SF execution
+    Value: !GetAtt EMRClusterInstanceProfileRole.Arn
+    Export:
+      Name: AWS-ETL-EMR-ClusterinstanceProfileRole
+  EMRClusterInstanceProfile:
+    Description: StateMachine Execution Role to be used to invoke StepFunction execution
+    Value: !GetAtt EMRClusterInstanceProfile.Arn
+    Export:
+      Name: AWS-ETL-EMRClusterinstanceProfile

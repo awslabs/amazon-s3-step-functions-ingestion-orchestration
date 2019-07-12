@@ -1,0 +1,193 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'Operations: EMR security groups in private subnet and associating with SSM endpoint using Lambda'
+Metadata:
+  License: >-
+    Any code, applications, scripts, templates, proofs of concept, documentation
+    and other items provided by AWS under this SOW are "AWS Content," as defined
+    in the Agreement, and are provided for illustration purposes only. All such
+    AWS Content is provided solely at the option of AWS, and is subject to the
+    terms of the Addendum and the Agreement. Customer is solely responsible for
+    using, deploying, testing, and supporting any code and applications provided
+    by AWS under this SOW.
+Parameters:
+  MyVPCId:
+    Description: Id of an existing VPC
+    Type: String
+    Default: vpc-14acd973
+Resources:
+  EMRMasterPrivateSG:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: EMR Master Private SG
+      VpcId: !Ref MyVPCId
+  EMRSlavePrivateSG:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: EMR Slave Private SG
+      VpcId: !Ref MyVPCId
+  EMRServiceAccessSG:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: EMR Service Access SG
+      VpcId: !Ref MyVPCId
+  EMRMasterPrivateSGIngress1:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: EMRMasterPrivateSG
+    Properties:
+      GroupId: !Ref EMRMasterPrivateSG
+      IpProtocol: icmp
+      FromPort: -1
+      ToPort: -1
+      SourceSecurityGroupId: !Ref EMRMasterPrivateSG
+  EMRMasterPrivateSGIngress2:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: EMRMasterPrivateSG
+    Properties:
+      GroupId: !Ref EMRMasterPrivateSG
+      IpProtocol: tcp
+      FromPort: '0'
+      ToPort: '65535'
+      SourceSecurityGroupId: !Ref EMRMasterPrivateSG
+  EMRMasterPrivateSGIngress3:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: EMRMasterPrivateSG
+    Properties:
+      GroupId: !Ref EMRMasterPrivateSG
+      IpProtocol: udp
+      FromPort: '0'
+      ToPort: '65535'
+      SourceSecurityGroupId: !Ref EMRMasterPrivateSG
+  EMRMasterPrivateSGIngress4:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: EMRMasterPrivateSG
+    Properties:
+      GroupId: !Ref EMRMasterPrivateSG
+      IpProtocol: icmp
+      FromPort: -1
+      ToPort: -1
+      SourceSecurityGroupId: !Ref EMRSlavePrivateSG
+  EMRMasterPrivateSGIngress5:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: EMRMasterPrivateSG
+    Properties:
+      GroupId: !Ref EMRMasterPrivateSG
+      IpProtocol: tcp
+      FromPort: '0'
+      ToPort: '65535'
+      SourceSecurityGroupId: !Ref EMRSlavePrivateSG
+  EMRMasterPrivateSGIngress6:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: EMRMasterPrivateSG
+    Properties:
+      GroupId: !Ref EMRMasterPrivateSG
+      IpProtocol: udp
+      FromPort: '0'
+      ToPort: '65535'
+      SourceSecurityGroupId: !Ref EMRSlavePrivateSG
+  EMRMasterPrivateSGIngress7:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: EMRMasterPrivateSG
+    Properties:
+      GroupId: !Ref EMRMasterPrivateSG
+      IpProtocol: tcp
+      FromPort: '8443'
+      ToPort: '8443'
+      SourceSecurityGroupId: !Ref EMRServiceAccessSG
+  EMRSlavePrivateSGIngress1:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: EMRSlavePrivateSG
+    Properties:
+      GroupId: !Ref EMRSlavePrivateSG
+      IpProtocol: icmp
+      FromPort: -1
+      ToPort: -1
+      SourceSecurityGroupId: !Ref EMRSlavePrivateSG
+  EMRSlavePrivateSGIngress2:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: EMRSlavePrivateSG
+    Properties:
+      GroupId: !Ref EMRSlavePrivateSG
+      IpProtocol: tcp
+      FromPort: 0
+      ToPort: '65535'
+      SourceSecurityGroupId: !Ref EMRSlavePrivateSG
+  EMRSlavePrivateSGIngress3:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: EMRSlavePrivateSG
+    Properties:
+      GroupId: !Ref EMRSlavePrivateSG
+      IpProtocol: udp
+      FromPort: 0
+      ToPort: 65535
+      SourceSecurityGroupId: !Ref EMRSlavePrivateSG
+  EMRSlavePrivateSGIngress4:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: EMRSlavePrivateSG
+    Properties:
+      GroupId: !Ref EMRSlavePrivateSG
+      IpProtocol: icmp
+      FromPort: -1
+      ToPort: -1
+      SourceSecurityGroupId: !Ref EMRMasterPrivateSG
+  EMRSlavePrivateSGIngress5:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: EMRSlavePrivateSG
+    Properties:
+      GroupId: !Ref EMRSlavePrivateSG
+      IpProtocol: tcp
+      FromPort: 0
+      ToPort: '65535'
+      SourceSecurityGroupId: !Ref EMRMasterPrivateSG
+  EMRSlavePrivateSGIngress6:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: EMRSlavePrivateSG
+    Properties:
+      GroupId: !Ref EMRSlavePrivateSG
+      IpProtocol: udp
+      FromPort: 0
+      ToPort: 65535
+      SourceSecurityGroupId: !Ref EMRMasterPrivateSG
+  EMRSlavePrivateSGIngress7:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    DependsOn: EMRSlavePrivateSG
+    Properties:
+      GroupId: !Ref EMRSlavePrivateSG
+      IpProtocol: tcp
+      FromPort: '8443'
+      ToPort: '8443'
+      SourceSecurityGroupId: !Ref EMRServiceAccessSG
+  EMRServiceAccessSGEgress1:
+    Type: 'AWS::EC2::SecurityGroupEgress'
+    DependsOn: EMRServiceAccessSG
+    Properties:
+      GroupId: !Ref EMRServiceAccessSG
+      IpProtocol: tcp
+      FromPort: '8443'
+      ToPort: '8443'
+      SourceSecurityGroupId: !Ref EMRMasterPrivateSG
+  EMRServiceAccessSGEgress2:
+    Type: 'AWS::EC2::SecurityGroupEgress'
+    DependsOn: EMRServiceAccessSG
+    Properties:
+      GroupId: !Ref EMRServiceAccessSG
+      IpProtocol: tcp
+      FromPort: '8443'
+      ToPort: '8443'
+      SourceSecurityGroupId: !Ref EMRSlavePrivateSG
+
+Outputs:
+  EMRMasterPrivateSG:
+    Value: !Ref 'EMRMasterPrivateSG'
+    Description: Name of the EMR Master Private Security Group
+    Export:
+      Name: AWS-ETL-ElasticMapReduceMasterPrivate-SG
+  EMRSlavePrivateSG:
+    Value: !Ref 'EMRSlavePrivateSG'
+    Description: Name of the EMR Slave Private Security Group
+    Export:
+      Name: AWS-ETL-ElasticMapReduceSlavePrivate-SG
+  EMRServiceAccessSG:
+    Value: !Ref 'EMRServiceAccessSG'
+    Description: Name of the EMR Service Access Private Security Group
+    Export:
+      Name: AWS-ETL-ElasticMapReduceServiceAccess-SG

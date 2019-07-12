@@ -86,34 +86,35 @@ The Aurora Database in this context represents the on premises database
 ## Part II
 
 ####Prerequisites:
-1. An AWS SNS Topic
-2. An S3 Bucket
-3. EC2 Key pair
-4. VPC Private Subnet
-5. EMR Security Groups
-6. EMR Roles
+1. An S3 Bucket
+2. EC2 Key pair
+3. VPC Private Subnet
 
 ![alt text](https://github.com/awslabs/amazon-s3-step-functions-ingestion-orchestration/blob/master/stepfunction.png)
 
 #### Steps
 
-1. Navigate to the lambdas folder and upload all the zip files to an S3 bucket location.
-2. Note the location and the names of the lambda functions , it will be used in the cloudformation stack to kick off the incremental ingestion execution run.
+1. Navigate to the cfn/aws-sns-topic.yml and use it to create an SNS topic. This creates a cloudformation export that its value are then imported into the aws-etl-stepfunction stack.
+2. Navigate to the cfn/aws-roles.yml and use it to create the roles that will be used by the step function , lambda  ETL process. This creates a cloudformation export whose values are then imported into the aws-etl-stepfunction stack.
+3. Navigate to the cfn/emr-roles and use it to create the EMR roles. This creates a cloudformation export whose values are then imported into the aws-etl-stepfunction stack.
+4. Navigate to the cfn/emr-security-groups.yml and use it to create EMR security groups. This creates a cloudformation export for the security groups and its values are  imported into the aws-etl-stepfunction stack.
+5. Navigate to the lambdas folder and upload all the zip files to an S3 bucket location.
+6. Note the location and the names of the lambda functions , it will be used in the cloudformation stack to kick off the incremental ingestion execution run.
 aws s3 sync lambdas/ s3://dfw-meetup-sf/lambdas/
-3. Create AWS your database secrets using below commands from the AWSCLI
+7. Create AWS your database secrets using below commands from the AWSCLI
 aws ssm put-parameter --name postgre-psswd --type SecureString --value <P@ssw0rd>
 aws ssm put-parameter --name postgre-user --type SecureString --value <admin>
 aws ssm put-parameter --name postgre-jdbcurl --type String --value <jdbc:postgresql://<RDS-NAME>-instance.2.rds.amazonaws.com:5432/example>
 This will be required from the sample spark script.
-4. Download the postgresql jdbc jar https://jdbc.postgresql.org/download.html and uplaod it to an S3 location. Note this location.
-5. Navigate to the ba folder in the repository, open the bootstrap-emr-step.sh and replace the value of the location of the postgresql jdbc jar with the value noted in (4) above, save the file and upload it to an s3 location. Upload the file bootstrap-emr.sh to the same S3 location.
-6. Modify cf/config.txt and replace the table names in column Eleven (11) to yours.
+9. Download the postgresql jdbc jar https://jdbc.postgresql.org/download.html and uplaod it to an S3 location. Note this location.
+10. Navigate to the ba folder in the repository, open the bootstrap-emr-step.sh and replace the value of the location of the postgresql jdbc jar with the value noted in (4) above, save the file and upload it to an s3 location. Upload the file bootstrap-emr.sh to the same S3 location.
+11. Modify cf/config.txt and replace the table names in column Eleven (11) to yours.
 aws s3 sync cfn/ s3://dfw-meetup-sf/cfn/
 aws s3 sync ba/ s3://dfw-meetup-sf/ba/
-6. Navigate to the cfn/aws-etl-stepfunction.json template and the cfn/stepfunction-parameters.json file. Replace the parameter values with your
+12. Navigate to the cfn/aws-etl-stepfunction.json template and the cfn/stepfunction-parameters.json file. Replace the parameter values with your
 own parameter values.
-7. Navigate to the AWS management console for Cloudformation and browse to the cfn folder,, load the aws-roles.yml to create the roles that will be used by the pipeline.
-8. Modify the config.txt replace the bucket name values with your bucket name.
+13. Navigate to the AWS management console for Cloudformation and browse to the cfn folder,, load the aws-roles.yml to create the roles that will be used by the pipeline.
+14. Modify the config.txt replace the bucket name values with your bucket name.
 
 
 | job_name | load_date | load_window_start | load_window_stop | job_flow_id | job_status | output_dir | script_source | database_name | table_name | window_db_column | partition_by_col | lower_bound | upper_bound | num_partitions |
@@ -154,5 +155,6 @@ FORMAT (mutable)
 6. A Cloudformation Lambda function Custom Resource
 7. SSM Parameters
 
+Confirm that data has been added to the output directory that you specified in your config.txt.
 
 Now it is time to tear down the Cloudformation stacks and delete the dynamodb tables.
