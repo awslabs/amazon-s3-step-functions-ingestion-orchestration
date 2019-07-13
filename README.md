@@ -98,7 +98,7 @@ The Aurora Database in this context represents the on premises database
 2. Navigate to the cfn/aws-roles.yml and use it to create the roles that will be used by the step function , lambda  ETL process. This creates a cloudformation export whose values are then imported into the aws-etl-stepfunction stack.
 3. Navigate to the cfn/emr-roles and use it to create the EMR roles. This creates a cloudformation export whose values are then imported into the aws-etl-stepfunction stack.
 4. Navigate to the cfn/emr-security-groups.yml and use it to create EMR security groups. This creates a cloudformation export for the security groups and its values are  imported into the aws-etl-stepfunction stack.
-5. Navigate to the lambdas folder and upload all the zip files to an S3 bucket location.
+5. Navigate to the lambdas folder and upload all the zip files to an S3 bucket location <my_bucket_name>/lambdas.
 6. Note the location and the names of the lambda functions , it will be used in the cloudformation stack to kick off the incremental ingestion execution run.
 aws s3 sync lambdas/ s3://dfw-meetup-sf/lambdas/
 7. Create AWS your database secrets using below commands from the AWSCLI
@@ -108,13 +108,50 @@ aws ssm put-parameter --name postgre-jdbcurl --type String --value <jdbc:postgre
 This will be required from the sample spark script.
 9. Download the postgresql jdbc jar https://jdbc.postgresql.org/download.html and uplaod it to an S3 location. Note this location.
 10. Navigate to the ba folder in the repository, open the bootstrap-emr-step.sh and replace the value of the location of the postgresql jdbc jar with the value noted in (4) above, save the file and upload it to an s3 location. Upload the file bootstrap-emr.sh to the same S3 location.
-11. Modify cf/config.txt and replace the table names in column Eleven (11) to yours.
-aws s3 sync cfn/ s3://dfw-meetup-sf/cfn/
-aws s3 sync ba/ s3://dfw-meetup-sf/ba/
-12. Navigate to the cfn/aws-etl-stepfunction.json template and the cfn/stepfunction-parameters.json file. Replace the parameter values with your
-own parameter values.
-13. Navigate to the AWS management console for Cloudformation and browse to the cfn folder,, load the aws-roles.yml to create the roles that will be used by the pipeline.
-14. Modify the config.txt replace the bucket name values with your bucket name.
+11. Modify cf/config.txt and replace the table names in columns 7,8 and 9 to yours.
+12. update the items in cfn/stepfunction-parameters.json to yours (a)loguri S3://aws-logs-111111111111-us-west-2/elasticmapreduce/
+13. Navigate to the cfn/aws-etl-stepfunction.json template and the cfn/stepfunction-parameters.json file. Replace the parameter values with your own parameter values.
+
+Parameters to change in stepfunction-parameters.json
+
+| ParameterKey |	ParameterValue |
+|--------------|-----------------|
+| CreateEMRModuleName	| aws_etl_emr_cluster_create |
+| AllJobsCompletedModule	| aws_etl_all_steps_completed |
+| AllJobsCompletedS3Key	| lambdas/aws_etl_all_steps_completed.zip |
+| ClusterStatusModuleName	| aws_etl_emr_cluster_status |
+| ClusterStatusS3Key	| lambdas/aws_etl_emr_cluster_status.zip |
+| configtable	| aws_etl_conf |
+| CreateEMRS3Key	| lambdas/aws_etl_emr_cluster_create.zip |
+| ec2keyname	| <Change-Me> |
+| ec2subnetid	| <Change-Me> |
+| emrbalocation	| s3://<Change-Me>/ba/bootstrap-emr.sh |
+| emrname	| AWS_SF_ETL_CLUSTER |
+| emrsteplocation	| s3://<Change-Me>/ba/bootstrap-emr-step.sh |
+| EMRStepStatusModuleName	| aws_etl_emr_step_status |
+| EMRStepStatusS3Key |	lambdas/aws_etl_emr_step_status.zip |
+| EMRStepSubmitModuleName |	aws_etl_add_emr_step |
+| EMRStepSubmitS3Key |	lambdas/aws_etl_add_emr_step.zip |
+| GetNextEMRJobModule	| aws_etl_iterator |
+| GetNextEMRJobS3Key |	lambdas/aws_etl_iterator.zip |
+| historytable |	aws_etl_history |
+| loguri | s3n://aws-logs-<MY-ACCOUNT_NUMBR>-us-west-2/elasticmapreduce |
+| regionname | us-west-2 |
+| releaselabel |	emr-5.17.0 |
+| S3Bucket |	<Change-Me> |
+| DDBConfigModule	| aws_etl_conf_jobs_custom_resource |
+| DDBConfigS3Key |	lambdas/aws_etl_conf_jobs_custom_resource.zip
+| CustomResourceS3Key	| cfn/config.txt |
+| emrcommandrunnerscript |	s3://us-west-2.elasticmapreduce/libs/script-runner/script-runner.jar |
+| Environment	| NonProd |
+| SubEnvironment |	dev2 |
+AccountName	aws-etl-state-machine
+| ETLStateMachineDateRotationS3Key |	lambdas/aws_etl_date_rotation.zip |
+| ETLStateMachineDateRotationModuleName	| aws_etl_date_rotation |
+
+
+14. Navigate to the AWS management console for Cloudformation and browse to the cfn folder,, load the aws-roles.yml to create the roles that will be used by the pipeline.
+15. Modify the config.txt replace the bucket name values with your bucket name.
 
 
 | job_name | load_date | load_window_start | load_window_stop | job_flow_id | job_status | output_dir | script_source | database_name | table_name | window_db_column | partition_by_col | lower_bound | upper_bound | num_partitions |
@@ -125,7 +162,7 @@ own parameter values.
 | shipment | 11/5/18 | 2018-11-04 00:00:000 | 2018-11-05 00:00:000 | j-0000000000000 | PENDING | s3://my-bucketholder/RAW/ | s3://my-bucketholder/spark/ingest_on_prem_db_tables.py | spark | cfn_s3_sprk_1_shipments | shipmt_date_tstmp | quarter | 1 | 1000 | 10 |
 
 
-14. Navigate to the CFN folder, From the AWS command line execute below command to create the cloudformation stack.
+16. Navigate to the CFN folder, From the AWS command line execute below command to create the cloudformation stack.
 
 aws cloudformation create-stack --stack-name gwfstepfunction --template-body file://aws-etl-stepfunction.json  --region us-west-2 --capabilities CAPABILITY_IAM  --parameters file://stepfunction-parameters.json
 
