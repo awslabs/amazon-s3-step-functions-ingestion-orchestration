@@ -41,15 +41,13 @@ This intent of this project is to provide an example pattern for designing an in
 
 #### Steps
 1. Clone the repository
-2. Download the data files from /data
-3. Create five separate folders on your S3 bucket name, the folders, Loans, Deposits, Investments and Shipments and glue.
-4. Upload the data to these folders
-5. Create a Aurora RDS database using this cloudformation template postgredb.yml
-6. From the cloned repository navigate to the glue folder and upload the aws-etl-start-crawler-custom-resource.py.zip to the glue folder in S3 bucket location. Note this location as you will need to provide it in the cloudformation stack below in (8)
-7. From the cloned repository navigate to the glue folder and upload the aws-etl-start-job-custom-resource.py.zip to the glue folder in S3 bucket location. Note this location as you will need in the cloudformation stack below in (8).
-8. Open the aws-glue-etl-job.py, replace the values for database (blog1) with your database name.
-9. Create Glue Crawler and Job load  stack using the aws-etl-load-rds.yml cloudformation template.  This cloudformation stack will create Glue crawlers that will crawl the s3 bucket locations and load data from the s3 bucket locations into the Aurora database already created.
-10. Parameter Values for above
+2. Create an S3 bucket and sync the data files from /data to the S3 bucket, this creates the data folders (Loans, Deposits, Investments and Shipments).
+3. Create folder named glue under the bucket you created in 2 above.
+4. Create a Aurora RDS database using this cloudformation template postgredb.yml
+5. Navigate to the /glue folder and open the aws-glue-etl-job.py, replace the values for database (blog1) with your database name and save.
+6. From the cloned repository navigate to the glue folder and sync the data in /glue.  aws s3 sync . s3://dfw-meetup-emr/glue/
+7. Create Glue Crawler and Job load  stack using the aws-etl-load-rds.yml cloudformation template.  This cloudformation stack will create Glue crawlers that will crawl the s3 bucket locations and load data from the s3 bucket locations into the Aurora database already created.
+8. Parameter Values for above
 
 | Parameter Name |	Parameter Value |
 |----------------|------------------|
@@ -98,19 +96,21 @@ The Aurora Database in this context represents the on premises database
 2. Navigate to the cfn/aws-roles.yml and use it to create the roles that will be used by the step function , lambda  ETL process. This creates a cloudformation export whose values are then imported into the aws-etl-stepfunction stack.
 3. Navigate to the cfn/emr-roles and use it to create the EMR roles. This creates a cloudformation export whose values are then imported into the aws-etl-stepfunction stack.
 4. Navigate to the cfn/emr-security-groups.yml and use it to create EMR security groups. This creates a cloudformation export for the security groups and its values are  imported into the aws-etl-stepfunction stack.
-5. Navigate to the lambdas folder and upload all the zip files to an S3 bucket location <my_bucket_name>/lambdas.
+5. Navigate to the lambdas folder and upload all the zip files to an S3 bucket location <my_bucket_name>/lambdas. aws s3 sync lambdas s3://<my-bucket>/lambdas/
 6. Note the location and the names of the lambda functions , it will be used in the cloudformation stack to kick off the incremental ingestion execution run.
-aws s3 sync lambdas/ s3://dfw-meetup-sf/lambdas/
 7. Create AWS your database secrets using below commands from the AWSCLI
 aws ssm put-parameter --name postgre-psswd --type SecureString --value <P@ssw0rd>
 aws ssm put-parameter --name postgre-user --type SecureString --value <admin>
 aws ssm put-parameter --name postgre-jdbcurl --type String --value <jdbc:postgresql://<RDS-NAME>-instance.2.rds.amazonaws.com:5432/example>
 This will be required from the sample spark script.
 9. Download the postgresql jdbc jar https://jdbc.postgresql.org/download.html and uplaod it to an S3 location. Note this location.
-10. Navigate to the ba folder in the repository, open the bootstrap-emr-step.sh and replace the value of the location of the postgresql jdbc jar with the value noted in (4) above, save the file and upload it to an s3 location. Upload the file bootstrap-emr.sh to the same S3 location.
-11. Modify cf/config.txt and replace the table names in columns 7,8 and 9 to yours.
-12. update the items in cfn/stepfunction-parameters.json to yours (a)loguri S3://aws-logs-111111111111-us-west-2/elasticmapreduce/
-13. Navigate to the cfn/aws-etl-stepfunction.json template and the cfn/stepfunction-parameters.json file. Replace the parameter values with your own parameter values.
+aws s3 cp postgresql-42.2.6.jar s3://<my-bucket>/
+10. Navigate to the ba folder in the repository, open the bootstrap-emr-step.sh and replace the value of the location of the postgresql jdbc jar, save the file and upload it to an s3 location.
+aws s3 sync ba s3://<my-bucket>/ba/
+aws s3 sync spark s3://dfw-meetup-emr/spark/
+11. Modify cfn/config.txt and replace the table names in columns 7,8 and 9 to yours. save and syn to s3 bucket folder
+aws s3 sync cfn s3://<my-bucket>/cfn/
+12. Navigate to the cfn/aws-etl-stepfunction.json template and the cfn/stepfunction-parameters.json file. Replace the parameter values with your own parameter values.
 
 Parameters to change in stepfunction-parameters.json
 
@@ -163,6 +163,7 @@ AccountName	aws-etl-state-machine
 
 
 16. Navigate to the CFN folder, From the AWS command line execute below command to create the cloudformation stack.
+
 
 aws cloudformation create-stack --stack-name gwfstepfunction --template-body file://aws-etl-stepfunction.json  --region us-west-2 --capabilities CAPABILITY_IAM  --parameters file://stepfunction-parameters.json
 
