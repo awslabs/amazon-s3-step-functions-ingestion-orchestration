@@ -92,7 +92,7 @@ The Aurora Database in this context represents the on premises database
 
 #### Steps
 
-1. Navigate to the cfn/aws-sns-topic.yml and use it to create an SNS topic. This creates a cloudformation export that its value are then imported into the aws-etl-stepfunction stack.
+1. Navigate to the cfn/aws-sns-topic.yml and use it to create an SNS topic. This creates a cloudformation export that its value are then imported into the aws-etl-stepfunction stack. Confirm the subscription.
 2. Navigate to the cfn/aws-roles.yml and use it to create the roles that will be used by the step function , lambda  ETL process. This creates a cloudformation export whose values are then imported into the aws-etl-stepfunction stack.
 3. Navigate to the cfn/emr-roles and use it to create the EMR roles. This creates a cloudformation export whose values are then imported into the aws-etl-stepfunction stack.
 4. Navigate to the cfn/emr-security-groups.yml and use it to create EMR security groups. This creates a cloudformation export for the security groups and its values are  imported into the aws-etl-stepfunction stack.
@@ -103,11 +103,11 @@ aws ssm put-parameter --name postgre-psswd --type SecureString --value <P@ssw0rd
 aws ssm put-parameter --name postgre-user --type SecureString --value <admin>
 aws ssm put-parameter --name postgre-jdbcurl --type String --value <jdbc:postgresql://<RDS-NAME>-instance.2.rds.amazonaws.com:5432/example>
 This will be required from the sample spark script.
-9. Download the postgresql jdbc jar https://jdbc.postgresql.org/download.html and uplaod it to an S3 location. Note this location.
+9. Download the postgresql jdbc jar https://jdbc.postgresql.org/download.html and upload it to an S3 location. Note this location.
 aws s3 cp postgresql-42.2.6.jar s3://<my-bucket>/
 10. Navigate to the ba folder in the repository, open the bootstrap-emr-step.sh and replace the value of the location of the postgresql jdbc jar, save the file and upload it to an s3 location.
 aws s3 sync ba s3://<my-bucket>/ba/
-aws s3 sync spark s3://dfw-meetup-emr/spark/
+aws s3 sync spark s3://<my-bucket>/spark/
 11. Modify cfn/config.txt and replace the table names in columns 7,8 and 9 to yours. save and syn to s3 bucket folder
 aws s3 sync cfn s3://<my-bucket>/cfn/
 12. Navigate to the cfn/aws-etl-stepfunction.json template and the cfn/stepfunction-parameters.json file. Replace the parameter values with your own parameter values.
@@ -150,8 +150,8 @@ AccountName	aws-etl-state-machine
 | ETLStateMachineDateRotationModuleName	| aws_etl_date_rotation |
 
 
-14. Navigate to the AWS management console for Cloudformation and browse to the cfn folder,, load the aws-roles.yml to create the roles that will be used by the pipeline.
-15. Modify the config.txt replace the bucket name values with your bucket name.
+13. Navigate to the AWS management console for Cloudformation and browse to the cfn folder,, load the aws-roles.yml to create the roles that will be used by the pipeline.
+14. Modify the config.txt replace the bucket name values with your bucket name.
 
 
 | job_name | load_date | load_window_start | load_window_stop | job_flow_id | job_status | output_dir | script_source | database_name | table_name | window_db_column | partition_by_col | lower_bound | upper_bound | num_partitions |
@@ -162,7 +162,7 @@ AccountName	aws-etl-state-machine
 | shipment | 11/5/18 | 2018-11-04 00:00:000 | 2018-11-05 00:00:000 | j-0000000000000 | PENDING | s3://my-bucketholder/RAW/ | s3://my-bucketholder/spark/ingest_on_prem_db_tables.py | spark | cfn_s3_sprk_1_shipments | shipmt_date_tstmp | quarter | 1 | 1000 | 10 |
 
 
-16. Navigate to the CFN folder, From the AWS command line execute below command to create the cloudformation stack.
+15. Navigate to the CFN folder, From the AWS command line execute below command to create the cloudformation stack.
 
 
 aws cloudformation create-stack --stack-name gwfstepfunction --template-body file://aws-etl-stepfunction.json  --region us-west-2 --capabilities CAPABILITY_IAM  --parameters file://stepfunction-parameters.json
