@@ -1,8 +1,15 @@
 # Incremental Ingestion Pipeline Example for a Data Lake on AWS Cloud
 
 ### 1. Intent and Purpose
+A datalake is a centralized repository that allows you to store structured and unstructured data at any scale. Business organizations require datalake because it has been shown that those organizations with datalake are able to retrieve and use actionable business intelligence from their lakes and outperform their peers.
+There are four essential elements of a Datalake Analytics solution
 
-This intent of this project is to provide an example pattern for designing an incremental ingestion pipeline on the AWS cloud using a AWS Step Functions and a combination of multiple AWS Services such Amazon S3, Amazon DynamoDB, Amazon ElasticMapReduce and Amazon Cloudwatch Events. This pattern does not replace what is already provided within AWS Glue and or Amazon Datapipeline, it only serves to provide an example pattern for Engineers who are interested in using a combination of AWS services to achieve a similar purpose.
+##1. Data Movement (Batch and or Streaming)
+##2. Data Catalog and Security
+##3. Analytics
+##4. Machine Learning
+
+This project falls into the first element, which is the Data Movement and the intent is to provide an example pattern for designing an incremental ingestion pipeline on the AWS cloud using a AWS Step Functions and a combination of multiple AWS Services such as Amazon S3, Amazon DynamoDB, Amazon ElasticMapReduce and Amazon Cloudwatch Events Rule. This pattern does not replace what is already provided within AWS Glue and or Amazon Datapipeline, it only serves to provide an example pattern for Engineers who are interested in using a combination of AWS services to achieve a similar purpose.
 
 
 ### 2. Services
@@ -41,13 +48,11 @@ This intent of this project is to provide an example pattern for designing an in
 
 #### Steps
 1. Clone the repository
-2. Create an S3 bucket and sync the data files from /data to the S3 bucket, this creates the data folders (Loans, Deposits, Investments and Shipments).
-3. Create folder named glue under the bucket you created in 2 above.
-4. Create a Aurora RDS database using this cloudformation template postgredb.yml
-5. Navigate to the /glue folder and open the aws-glue-etl-job.py, replace the values for database (blog1) with your database name and save.
-6. From the cloned repository navigate to the glue folder and sync the data in /glue.  aws s3 sync . s3://dfw-meetup-emr/glue/
-7. Create Glue Crawler and Job load  stack using the aws-etl-load-rds.yml cloudformation template.  This cloudformation stack will create Glue crawlers that will crawl the s3 bucket locations and load data from the s3 bucket locations into the Aurora database already created.
-8. Parameter Values for above
+2. Create an S3 bucket <my-bucket> and sync the repository to the bucket. aws s3 sync . s3://<my-bucket>
+3. Create a Aurora RDS database using this cloudformation template glue/postgredb.yml
+4. Navigate to the /glue folder and open the aws-glue-etl-job.py, replace the values for database (etl) with your database name, save and upload to s3.
+5. Create Glue Crawler and Job load  stack using the aws-etl-load-rds.yml cloudformation template.  This cloudformation stack will create Glue crawlers that will crawl the public s3 bucket locations(dfw-meeetup-emr/Deposits, Loans, Investments and Shipments) and a glue job to load data from the s3 bucket locations into the Aurora database you created. The data in these locations are made up.
+6. Parameter Values for above
 
 | Parameter Name |	Parameter Value |
 |----------------|------------------|
@@ -60,10 +65,10 @@ This intent of this project is to provide an example pattern for designing an in
 |CFNJDBCUser	| <Change Me> |
 |CFNJobName	| cfn-glue-job-s3-to-JDBC |
 |CFNLoansCrawlerName	| cfn-crawler-spark-loa |
-|CFNS3PATHDEPOSIT	| s3://<ChangeMe>/Deposits |
-|CFNS3PATHINV	| s3://<ChangeMe>/Investments |
-|CFNS3PATHLOAN	| s3://<ChangeMe>/Loans |
-|CFNS3PATHSHIP	| s3://<ChangeMe>/Shipments |
+|CFNS3PATHDEPOSIT	| s3://dfw-meetup-emr/Deposits |
+|CFNS3PATHINV	| s3://dfw-meetup-emr/Investments |
+|CFNS3PATHLOAN	| s3://dfw-meetup-emr/Loans |
+|CFNS3PATHSHIP	| s3://dfw-meetup-emr/Shipments |
 |CFNScriptLocation	| s3://<ChangeMe>/aws-glue-etl-job.py |
 |CFNShipmentsCrawlerName	| cfn-crawler-spark-shi |
 |CFNTablePrefixName	| cfn_s3_sprk_1_ |
