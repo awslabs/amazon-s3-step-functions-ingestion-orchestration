@@ -4,10 +4,10 @@
 A datalake is a centralized repository that allows you to store structured and unstructured data at any scale. Business organizations require datalake because it has been shown that those organizations with datalake are able to retrieve and use actionable business intelligence from their lakes and outperform their peers.
 There are four essential elements of a Datalake Analytics solution
 
-##1. Data Movement (Batch and or Streaming)
-##2. Data Catalog and Security
-##3. Analytics
-##4. Machine Learning
+1. Data Movement (Batch and or Streaming)
+2. Data Catalog and Security
+3. Analytics
+4. Machine Learning
 
 This project falls into the first element, which is the Data Movement and the intent is to provide an example pattern for designing an incremental ingestion pipeline on the AWS cloud using a AWS Step Functions and a combination of multiple AWS Services such as Amazon S3, Amazon DynamoDB, Amazon ElasticMapReduce and Amazon Cloudwatch Events Rule. This pattern does not replace what is already provided within AWS Glue and or Amazon Datapipeline, it only serves to provide an example pattern for Engineers who are interested in using a combination of AWS services to achieve a similar purpose.
 
