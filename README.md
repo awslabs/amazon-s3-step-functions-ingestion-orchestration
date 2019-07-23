@@ -35,9 +35,8 @@ This project falls into the first element, which is the Data Movement and the in
 
 ### 5. Two Major Steps
 
-1. Create an Aurora RDS database (Optional if you have an existing Aurora Postgresql database)
-2. Load data into RDS Aurora database tables
-3. Execute Incremental Ingestion pipeline
+1. Create an Aurora RDS database (Optional if you have an existing Aurora Postgresql database) and load sample data into RDS Aurora database tables
+2. Execute Incremental Ingestion pipeline
 
 ### 6. Step By Step Setup
 
