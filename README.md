@@ -101,7 +101,7 @@ The Aurora Database in this context represents the on premises database
 3. Navigate to the cfn/emr-roles and use it to create the EMR roles. This creates a cloudformation export whose values are then imported into the aws-etl-stepfunction stack.
 4. Navigate to the cfn/emr-security-groups.yml and use it to create EMR security groups. This creates a cloudformation export for the security groups and its values are  imported into the aws-etl-stepfunction stack.
 5. Navigate to the lambdas folder and upload all the zip files to an S3 bucket location <my_bucket_name>/lambdas.
-aws s3 sync lambdas s3://<my-bucket>/lambdas/
+aws s3 sync lambdas s3://<my_bucket_name>/lambdas/
 6. Note the location and the names of the lambda functions , it will be used in the cloudformation stack to kick off the incremental ingestion execution run.
 7. Create AWS your database secrets using below commands from the AWSCLI
 aws ssm put-parameter --name postgre-psswd --type SecureString --value <P@ssw0rd>
