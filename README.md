@@ -128,11 +128,11 @@ Parameters to change in stepfunction-parameters.json
 | ClusterStatusS3Key	| lambdas/aws_etl_emr_cluster_status.zip |
 | configtable	| aws_etl_conf |
 | CreateEMRS3Key	| lambdas/aws_etl_emr_cluster_create.zip |
-| ec2keyname	| <Change-Me> |
-| ec2subnetid	| <Change-Me> |
-| emrbalocation	| s3://<Change-Me>/ba/bootstrap-emr.sh |
+| ec2keyname	| <my_ec2_key_name> |
+| ec2subnetid	| <my_subnet_id> |
+| emrbalocation	| s3://<my_bucket_name>/ba/bootstrap-emr.sh |
 | emrname	| AWS_SF_ETL_CLUSTER |
-| emrsteplocation	| s3://<Change-Me>/ba/bootstrap-emr-step.sh |
+| emrsteplocation	| s3://my_bucket_name/ba/bootstrap-emr-step.sh |
 | EMRStepStatusModuleName	| aws_etl_emr_step_status |
 | EMRStepStatusS3Key |	lambdas/aws_etl_emr_step_status.zip |
 | EMRStepSubmitModuleName |	aws_etl_add_emr_step |
@@ -143,7 +143,7 @@ Parameters to change in stepfunction-parameters.json
 | loguri | s3n://aws-logs-<MY-ACCOUNT_NUMBR>-us-west-2/elasticmapreduce |
 | regionname | us-west-2 |
 | releaselabel |	emr-5.17.0 |
-| S3Bucket |	<Change-Me> |
+| S3Bucket |	<my_bucket_name> |
 | DDBConfigModule	| aws_etl_conf_jobs_custom_resource |
 | DDBConfigS3Key |	lambdas/aws_etl_conf_jobs_custom_resource.zip
 | CustomResourceS3Key	| cfn/config.txt |
