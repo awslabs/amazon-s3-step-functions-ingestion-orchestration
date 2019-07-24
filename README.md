@@ -43,7 +43,7 @@ This project falls into the first element, which is the Data Movement and the in
 ## Part I
 ####Prerequisites:
 1. A VPC with at least one Private and Public Subnet
-2.  An EC2 instance that can used as a Bastion Host for connection to the created database
+2. (Optional) An EC2 instance that can used as a Bastion Host for connection to the created database
 
 #### Steps
 1. Clone the repository
